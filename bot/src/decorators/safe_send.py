@@ -1,6 +1,6 @@
 from functools import wraps
 from aiogram.exceptions import TelegramForbiddenError
-from src.views.deactivate_user import deactivate_user
+from src.views.user.deactivate_user import deactivate_user
 
 
 def safe_send(func):

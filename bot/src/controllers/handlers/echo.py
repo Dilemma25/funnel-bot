@@ -10,7 +10,7 @@ from aiogram.types import Message
 
 echo_router = Router()
 
-@echo_router.message()
+# @echo_router.message()
 async def echo_handler(message: Message) -> None:
     try:
 

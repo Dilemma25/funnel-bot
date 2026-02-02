@@ -1,4 +1,4 @@
-from src.scheduler.task_types.base import BaseTask
+from src.scheduler.tasks.base import BaseTask
 from src.safe_bot import SafeBot
 
 
@@ -12,5 +12,5 @@ class SendMessageTask(BaseTask):
         await self.bot.send_message(
             chat_id=self.payload["user_id"],
             text=self.payload["text"],
-            parse_mode="html"
+            parse_mode="html",
         )

@@ -16,7 +16,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
+#TODO доделать чтоб не было 2 крона в один момент времени, скорее всего через grep
 async def main():
 
 

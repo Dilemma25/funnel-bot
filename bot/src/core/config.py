@@ -14,6 +14,14 @@ config = {
     'DATABASE_NAME' : os.getenv('DATABASE_NAME'),
 
     'TIMEZONE' : timezone.utc,
+
+    'REDIS' : {
+        'HOST': os.getenv('REDIS_HOST'),
+        'PORT': os.getenv('REDIS_PORT'),
+        'DB': os.getenv('REDIS_DB'),
+    },
+
+    'TEST_PRIVATE_GROUP_ID' : -1003804979475
 }
 
 TORTOISE_ORM = {
@@ -27,3 +35,4 @@ TORTOISE_ORM = {
             }
         }
 }
+

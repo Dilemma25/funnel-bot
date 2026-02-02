@@ -1,6 +1,6 @@
 from aiogram import BaseMiddleware
 from aiogram.types import Message
-from src.views.get_or_create_user import get_or_create_user
+from src.views.user.get_or_create_user import get_or_create_user
 
 
 class UserCheckMiddleware(BaseMiddleware):

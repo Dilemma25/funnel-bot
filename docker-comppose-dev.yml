@@ -1,0 +1,13 @@
+services:
+ funnel-scheduler:
+    build:
+      context: ./bot
+      dockerfile: ./src/scheduler/Dockerfile
+    container_name: funnel-scheduler
+    env_file: .env   
+    volumes:
+      - ./bot:/app
+      - scheduler_logs:/app/var/log
+
+volumes:
+  scheduler_logs:
