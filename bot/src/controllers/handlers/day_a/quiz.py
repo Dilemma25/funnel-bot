@@ -16,17 +16,23 @@ from .consts import QUIZ_ANSWERS
 )
 async def handle_found_problems(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
+
+    await callback.message.delete()
+
     await callback.message.answer(
         text=messages.message_C1,
         parse_mode="Markdown",
     )
+
     await callback.message.answer(
         text=messages.message_A4_q1,
         reply_markup=day_a_keyboards.keyboard_quiz_1,
         parse_mode="Markdown",
     )
 
-    await state.update_data(quiz_sum=0)
+    await state.update_data(
+        quiz_sum=0,
+    )
     await state.set_state(DayAStates.quiz_q1)
 
 @day_a_router.callback_query(
@@ -35,17 +41,23 @@ async def handle_found_problems(callback: CallbackQuery, state: FSMContext):
 )
 async def handle_not_found_problems(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
+
+    await callback.message.delete()
+
     await callback.message.answer(
         text=messages.message_C2,
         parse_mode="Markdown",
     )
+
     await callback.message.answer(
         text=messages.message_A4_q1,
         reply_markup=day_a_keyboards.keyboard_quiz_1,
         parse_mode="Markdown",
     )
 
-    await state.update_data(quiz_sum=0)
+    await state.update_data(
+        quiz_sum=0,
+    )
     await state.set_state(DayAStates.quiz_q1)
 
 @day_a_router.callback_query(
@@ -54,6 +66,9 @@ async def handle_not_found_problems(callback: CallbackQuery, state: FSMContext):
 )
 async def handle_quiz_1(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
+
+    await callback.message.delete()
+
     await callback.message.answer(
         text=messages.message_A4_q2,
         reply_markup=day_a_keyboards.keyboard_quiz_2,
@@ -64,6 +79,7 @@ async def handle_quiz_1(callback: CallbackQuery, state: FSMContext):
     price = QUIZ_ANSWERS["q1"][answer_q1]
 
     data = await state.get_data()
+
     data["quiz_sum"] += price
     await state.update_data(quiz_sum=data["quiz_sum"])
 
@@ -75,6 +91,9 @@ async def handle_quiz_1(callback: CallbackQuery, state: FSMContext):
 )
 async def handle_quiz_2(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
+
+    await callback.message.delete()
+
     await callback.message.answer(
         text=messages.message_A4_q3,
         reply_markup=day_a_keyboards.keyboard_quiz_3,
@@ -95,8 +114,10 @@ async def handle_quiz_2(callback: CallbackQuery, state: FSMContext):
     F.data.startswith("day_a:a4:q3_")
 )
 async def handle_quiz_3(callback: CallbackQuery, state: FSMContext):
-
     await callback.answer()
+
+    await callback.message.delete()
+
     await callback.message.answer(
         text=messages.message_A4_q4,
         reply_markup=day_a_keyboards.keyboard_quiz_4,
@@ -118,6 +139,8 @@ async def handle_quiz_3(callback: CallbackQuery, state: FSMContext):
 )
 async def handle_quiz_4(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
+
+    await callback.message.delete()
 
     answer_q4 = callback.data.split("_")[-1]
     price = QUIZ_ANSWERS["q4"][answer_q4]

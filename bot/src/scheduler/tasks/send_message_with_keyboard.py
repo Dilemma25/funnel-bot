@@ -3,6 +3,7 @@ from src.safe_bot import SafeBot
 from aiogram.types import InlineKeyboardButton
 from aiogram.types import InlineKeyboardMarkup
 
+
 class SendMessageWithKeyboardTask(BaseTask):
     def __init__(self, bot: SafeBot, payload: dict):
         self.bot = bot
@@ -33,5 +34,5 @@ class SendMessageWithKeyboardTask(BaseTask):
             chat_id=self.payload["user_id"],
             text=self.payload["text"],
             reply_markup=keyboard,
-            parse_mode="html",
+            parse_mode="Markdown",
         )

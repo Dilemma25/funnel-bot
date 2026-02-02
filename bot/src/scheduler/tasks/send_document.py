@@ -12,7 +12,7 @@ class SendDocumentTask(BaseTask):
         await self.bot.send_document(
             chat_id=self.payload["user_id"],
             caption=self.payload["text"],
-            parse_mode="html",
+            parse_mode="Markdown",
             document=self.payload["file_id"],
             protect_content=True,
         )
