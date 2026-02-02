@@ -1,4 +1,4 @@
-from src.scheduler.tasks.base import BaseTask
+from src.processing.tasks.base import BaseTask
 from src.safe_bot import SafeBot
 
 
