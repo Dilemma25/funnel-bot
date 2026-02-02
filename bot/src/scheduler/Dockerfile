@@ -10,4 +10,6 @@ RUN pip install poetry && poetry install --no-root
 
 RUN mkdir -p /app/var/log
 
-CMD ["sh", "-c", "echo \"* * * * * cd /app && /usr/local/bin/poetry run python src/scheduler/runner.py >> /app/var/log/scheduler.log 2>&1\" | crontab - && cron -f"]
+ENV PYTHONPATH=/app
+
+CMD ["sh", "-c", "echo \"* * * * * cd /app && PYTHONPATH=/app /usr/local/bin/poetry run python src/scheduler/runner.py >> /app/var/log/scheduler.log 2>&1\" | crontab - && cron -f"]

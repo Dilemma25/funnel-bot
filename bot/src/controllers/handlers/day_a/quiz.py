@@ -15,7 +15,6 @@ from src.states.day_a import DayAStates
 )
 async def handle_found_problems(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    await callback.message.answer(messages.message_C1, parse_mode="HTML")
     await callback.message.answer(
         text=messages.message_C1,
         reply_markup=day_a_keyboards.keyboard_quiz_1,
@@ -28,9 +27,8 @@ async def handle_found_problems(callback: CallbackQuery, state: FSMContext):
     StateFilter(DayAStates.waiting_for_checklist_choice),
     F.data == "day_a:a3:not_found"
 )
-async def handle_found_problems(callback: CallbackQuery, state: FSMContext):
+async def handle_not_found_problems(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    await callback.message.answer(messages.message_C1, parse_mode="HTML")
     await callback.message.answer(
         text=messages.message_C2,
         reply_markup=day_a_keyboards.keyboard_quiz_1,
