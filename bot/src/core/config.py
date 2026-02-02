@@ -21,7 +21,7 @@ config = {
         'DB': os.getenv('REDIS_DB'),
     },
 
-    'TEST_PRIVATE_GROUP_ID' : -1003804979475
+    'SCHEDULER_LOCK_KEY' : os.getenv('SCHEDULER_LOCK_KEY'),
 }
 
 TORTOISE_ORM = {
