@@ -1,0 +1,15 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY pyproject.toml poetry.lock* ./
+
+RUN pip install poetry && poetry install --no-root
+
+COPY . .
+
+RUN mkdir -p /app/var/log
+
+ENV PYTHONPATH=/app
+
+CMD ["sh", "-c", "poetry run python src/processing/runners/consumer_runner.py >> /app/var/log/consumer.log 2>&1"]

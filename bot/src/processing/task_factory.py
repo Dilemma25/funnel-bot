@@ -1,8 +1,7 @@
-from src.scheduler.tasks import SendMessageTask
-from src.scheduler.tasks import SendDocumentTask
-from src.scheduler.tasks import SendMessageWithKeyboardTask
+from src.processing.tasks import SendMessageTask
+from src.processing.tasks import SendDocumentTask
+from src.processing.tasks import SendMessageWithKeyboardTask
 from src.safe_bot import SafeBot
-
 
 
 class TaskFactory:
@@ -18,4 +17,3 @@ class TaskFactory:
         if not handler_class:
             raise ValueError(f"Unknown task type: {task_type}")
         return handler_class(bot, payload)
-

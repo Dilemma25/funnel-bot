@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from datetime import timezone
+import pytz
 
 load_dotenv()
 
@@ -13,7 +13,7 @@ config = {
     'DATABASE_PORT' : os.getenv('DATABASE_PORT'),
     'DATABASE_NAME' : os.getenv('DATABASE_NAME'),
 
-    'TIMEZONE' : timezone.utc,
+    'TIMEZONE' : pytz.timezone(os.getenv('TZ')),
 
     'REDIS' : {
         'HOST': os.getenv('REDIS_HOST'),
@@ -22,6 +22,8 @@ config = {
     },
 
     'SCHEDULER_LOCK_KEY' : os.getenv('SCHEDULER_LOCK_KEY'),
+
+    'REDIS_STREAM_KEY' : os.getenv('REDIS_STREAM_KEY'),
 }
 
 TORTOISE_ORM = {
