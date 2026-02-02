@@ -6,7 +6,6 @@ from aiogram.types import Message
 from aiogram.types import CallbackQuery
 
 from src.keyboards.day_a_keyboards import keyboard_A1
-from src.keyboards.day_a_keyboards import keyboard_quiz_1
 from src.views.user import get_or_create_user
 from src.views.media import get_by_file_name
 from src.views.tasks import create
@@ -24,9 +23,10 @@ async def start_day_a(message: Message, state: FSMContext):
     await get_or_create_user(message.from_user.id)
 
     await message.answer(
-        messages.message_A1, parse_mode="Markdown",
+        messages.message_A1,
+        parse_mode="Markdown",
         reply_markup=keyboard_A1,
-        )
+    )
 
     await state.set_state(DayAStates.starting_day_a)
 
@@ -44,6 +44,7 @@ async def send_video_lid(callback: CallbackQuery, state: FSMContext):
         video=file_id,
         caption=messages.message_A2,
         protect_content=True,
+        parse_mode="Markdown",
     )
 
     task_type = "send_document"
