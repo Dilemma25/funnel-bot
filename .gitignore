@@ -3,5 +3,8 @@
 .idea/
 **/var/
 **/log/
+**/**.tar
+
+cron.sh
 
 **/__pycache__/

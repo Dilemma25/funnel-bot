@@ -1,0 +1,31 @@
+services:
+  funnel-scheduler:
+    build:
+      context: ./bot
+      dockerfile: ./src/processing/Dockerfile
+    container_name: funnel-scheduler
+    env_file: .env
+    network_mode: host
+    volumes:
+      - ./bot:/app
+      - ./var/log:/app/var/log
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+
+  user-consumer:
+    build:
+      context: ./bot
+      dockerfile: ./src/processing/workers/user_worker/Dockerfile
+    container_name: user-consumer
+    env_file: .env
+    network_mode: host
+    volumes:
+      - ./bot:/app
+      - ./var/log:/app/var/log
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+
+volumes:
+  scheduler_logs:
