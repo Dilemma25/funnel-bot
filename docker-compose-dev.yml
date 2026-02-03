@@ -2,7 +2,7 @@ services:
   funnel-scheduler:
     build:
       context: ./bot
-      dockerfile: ./src/processing/Dockerfile.scheduler
+      dockerfile: ./src/processing/Dockerfile
     container_name: funnel-scheduler
     env_file: .env
     network_mode: host
@@ -13,11 +13,11 @@ services:
       - /etc/localtime:/etc/localtime:ro
     restart: unless-stopped
 
-  funnel-consumer:
+  user-consumer:
     build:
       context: ./bot
-      dockerfile: ./src/processing/Dockerfile.consumer
-    container_name: funnel-consumer
+      dockerfile: ./src/processing/workers/user_worker/Dockerfile
+    container_name: user-consumer
     env_file: .env
     network_mode: host
     volumes:
