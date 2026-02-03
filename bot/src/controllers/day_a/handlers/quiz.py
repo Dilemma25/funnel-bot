@@ -1,15 +1,22 @@
-from . import day_a_router
 from aiogram import F
 from aiogram.filters import StateFilter
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 
-from src.controllers.handlers.day_a import messages as messages
 from src.keyboards import day_a_keyboards as day_a_keyboards
 from src.states.day_a import DayAStates
-from .consts import QUIZ_ANSWERS
+from src.controllers.day_a.consts import QUIZ_ANSWERS
+from src.views.media import get_by_file_name
+from src.views.tasks import create
+from src.core.config import config
+from src.controllers.day_a import messages as messages
+from . import day_a_router
+
+from datetime import datetime
+from datetime import timedelta
 
 
+#TODO везде поправить время отправки, завести файл с коснтами
 @day_a_router.callback_query(
     StateFilter(DayAStates.waiting_for_checklist_choice),
     F.data.startswith("day_a:a3:found")
@@ -154,3 +161,33 @@ async def handle_quiz_4(callback: CallbackQuery, state: FSMContext):
     )
 
     await state.set_state(DayAStates.quiz_result)
+
+    #Таска на кружок(A6)
+    user_id = callback.message.chat.id
+    file_id = await get_by_file_name("V1_krujok_jadnost")
+
+    payload = {
+        "user_id": user_id,
+        "text": messages.message_A3,
+        "file_id": file_id
+    }
+
+    task_type = "send_video_note"
+    time_run = datetime.now(config["TIMEZONE"]) + timedelta(seconds=50)
+
+    await create(user_id, task_type, payload, time_run)
+
+    keyboard_json = [
+        [{"text": "Понятно, что дальше?", "callback_data": "day_a:a7:next"}],
+    ]
+
+    payload = {
+        "user_id": user_id,
+        "text": messages.message_A7,
+        "keyboard" : keyboard_json
+    }
+
+    task_type = "send_message_with_keyboard"
+    time_run = datetime.now(config["TIMEZONE"]) + timedelta(seconds=80)
+
+    await create(user_id, task_type, payload, time_run)

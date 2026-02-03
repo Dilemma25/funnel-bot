@@ -110,7 +110,7 @@ class UserMessageConsumer:
                 self.redis.xdel(self.stream_key, message_id),
             )
 
-            await asyncio.sleep(30)
+            await asyncio.sleep(1)
 
         except Exception as e:
             logger.error(f"Error handling task {task_id}: {e}", exc_info=True)

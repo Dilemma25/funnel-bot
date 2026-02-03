@@ -10,9 +10,9 @@ from src.views.user import get_or_create_user
 from src.views.media import get_by_file_name
 from src.views.tasks import create
 from src.states.day_a import DayAStates
-import src.controllers.handlers.day_a.messages as messages
-from . import day_a_router
+import src.controllers.day_a.messages as messages
 from src.core.config import config
+from . import day_a_router
 
 from datetime import datetime
 from datetime import timedelta

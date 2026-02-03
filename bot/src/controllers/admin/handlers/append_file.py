@@ -22,6 +22,8 @@ async def receive_file(message: Message, state: FSMContext):
         file_id = message.video.file_id
     elif message.document:
         file_id = message.document.file_id
+    elif message.video_note:
+        file_id = message.video_note.file_id
     else:
         await message.answer("❌ Отправь видео, документ или фото")
         return
