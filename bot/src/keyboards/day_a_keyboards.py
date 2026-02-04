@@ -52,8 +52,9 @@ keyboard_quiz_4 = InlineKeyboardMarkup(
     ]
 )
 
-# keybooard_A7 = InlineKeyboardMarkup(
-#     inline_keyboard=[
-#         [InlineKeyboardButton(text="", callback_data=)]
-#     ]
-# )
+keyboard_A9_2_2 = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="💳 Купить за 2 490 ₽", callback_data="day_a:a9_2_2:buy")],
+        [InlineKeyboardButton(text="⏰ Нужно подумать", callback_data="day_a:a9_2_2:timeout")],
+    ]
+)

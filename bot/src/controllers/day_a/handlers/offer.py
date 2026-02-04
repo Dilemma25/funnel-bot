@@ -3,12 +3,13 @@ from datetime import datetime
 from aiogram import F
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 
 from src.controllers.day_a import messages
 from src.controllers.day_a.handlers import day_a_router
 from src.controllers.day_a.timings import Timings
 from src.core.config import config
+from src.keyboards.day_a_keyboards import keyboard_A9_2_2
 from src.states.day_a import DayAStates
 from src.views.media import get_by_file_name
 from src.views.tasks import create
@@ -138,9 +139,15 @@ async def handle_reviews(callback: CallbackQuery, state: FSMContext):
     for i in range(1, 6):
         file_id = await get_by_file_name(f"otzyv_{i}")
 
+        reply_markup = None
+
+        if i == 5:
+            reply_markup = keyboard_A9_2_2
+
         await callback.message.answer_photo(
             photo=file_id,
             protect_content=True,
+            reply_markup=reply_markup,
         )
 
     await state.set_state(DayAStates.day_a_reviews_sent)
