@@ -15,4 +15,4 @@ RUN mkdir -p /app/var/log
 
 ENV PYTHONPATH=/app
 
-CMD ["sh", "-c", "echo \"* * * * * cd /app && PYTHONPATH=/app /usr/local/bin/poetry run python src/processing/runners/scheduler_runner.py >> /app/var/log/scheduler.log 2>&1\" | crontab - && cron -f"]
+CMD ["sh", "-c", "echo \"* * * * * cd /app && PYTHONPATH=/app /usr/local/bin/poetry run python src/processing/scheduler_runner.py >> /app/var/log/scheduler.log 2>&1\" | crontab - && cron -f"]

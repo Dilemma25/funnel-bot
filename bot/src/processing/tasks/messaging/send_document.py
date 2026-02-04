@@ -1,14 +1,10 @@
-from src.processing.tasks.base import BaseTask
-from src.safe_bot import SafeBot
+from src.processing.tasks.messaging.base_messaging import BaseMessagingTask
 
 
-class SendDocumentTask(BaseTask):
-
-    def __init__(self, bot: SafeBot, payload: dict):
-        self.bot = bot
-        self.payload = payload
+class SendDocumentTask(BaseMessagingTask):
 
     async def execute(self):
+
         await self.bot.send_document(
             chat_id=self.payload["user_id"],
             caption=self.payload["text"],

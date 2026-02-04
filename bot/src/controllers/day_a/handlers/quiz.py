@@ -13,12 +13,12 @@ from src.controllers.day_a import messages as messages
 from . import day_a_router
 
 from datetime import datetime
-from datetime import timedelta
+
+from src.controllers.day_a.timings import Timings
 
 
-#TODO везде поправить время отправки, завести файл с коснтами
 @day_a_router.callback_query(
-    StateFilter(DayAStates.waiting_for_checklist_choice),
+    StateFilter(DayAStates.a_2_video_sent),
     F.data.startswith("day_a:a3:found")
 )
 async def handle_found_problems(callback: CallbackQuery, state: FSMContext):
@@ -29,21 +29,23 @@ async def handle_found_problems(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
         text=messages.message_C1,
         parse_mode="Markdown",
+        protect_content=True,
     )
 
     await callback.message.answer(
         text=messages.message_A4_q1,
         reply_markup=day_a_keyboards.keyboard_quiz_1,
         parse_mode="Markdown",
+        protect_content=True,
     )
 
     await state.update_data(
         quiz_sum=0,
     )
-    await state.set_state(DayAStates.quiz_q1)
+    await state.set_state(DayAStates.a_4_quiz_q1)
 
 @day_a_router.callback_query(
-    StateFilter(DayAStates.waiting_for_checklist_choice),
+    StateFilter(DayAStates.a_2_video_sent),
     F.data.startswith("day_a:a3:not_found")
 )
 async def handle_not_found_problems(callback: CallbackQuery, state: FSMContext):
@@ -54,21 +56,23 @@ async def handle_not_found_problems(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
         text=messages.message_C2,
         parse_mode="Markdown",
+        protect_content=True,
     )
 
     await callback.message.answer(
         text=messages.message_A4_q1,
         reply_markup=day_a_keyboards.keyboard_quiz_1,
         parse_mode="Markdown",
+        protect_content=True,
     )
 
     await state.update_data(
         quiz_sum=0,
     )
-    await state.set_state(DayAStates.quiz_q1)
+    await state.set_state(DayAStates.a_4_quiz_q1)
 
 @day_a_router.callback_query(
-    StateFilter(DayAStates.quiz_q1),
+    StateFilter(DayAStates.a_4_quiz_q1),
     F.data.startswith("day_a:a4:q1_")
 )
 async def handle_quiz_1(callback: CallbackQuery, state: FSMContext):
@@ -80,6 +84,7 @@ async def handle_quiz_1(callback: CallbackQuery, state: FSMContext):
         text=messages.message_A4_q2,
         reply_markup=day_a_keyboards.keyboard_quiz_2,
         parse_mode="Markdown",
+        protect_content=True,
     )
 
     answer_q1 = callback.data.split("_")[-1]
@@ -90,10 +95,10 @@ async def handle_quiz_1(callback: CallbackQuery, state: FSMContext):
     data["quiz_sum"] += price
     await state.update_data(quiz_sum=data["quiz_sum"])
 
-    await state.set_state(DayAStates.quiz_q2)
+    await state.set_state(DayAStates.a_4_quiz_q2)
 
 @day_a_router.callback_query(
-    StateFilter(DayAStates.quiz_q2),
+    StateFilter(DayAStates.a_4_quiz_q2),
     F.data.startswith("day_a:a4:q2_")
 )
 async def handle_quiz_2(callback: CallbackQuery, state: FSMContext):
@@ -105,6 +110,7 @@ async def handle_quiz_2(callback: CallbackQuery, state: FSMContext):
         text=messages.message_A4_q3,
         reply_markup=day_a_keyboards.keyboard_quiz_3,
         parse_mode="Markdown",
+        protect_content=True,
     )
 
     answer_q2 = callback.data.split("_")[-1]
@@ -114,10 +120,10 @@ async def handle_quiz_2(callback: CallbackQuery, state: FSMContext):
     data["quiz_sum"] += price
     await state.update_data(quiz_sum=data["quiz_sum"])
 
-    await state.set_state(DayAStates.quiz_q3)
+    await state.set_state(DayAStates.a_4_quiz_q3)
 
 @day_a_router.callback_query(
-    StateFilter(DayAStates.quiz_q3),
+    StateFilter(DayAStates.a_4_quiz_q3),
     F.data.startswith("day_a:a4:q3_")
 )
 async def handle_quiz_3(callback: CallbackQuery, state: FSMContext):
@@ -129,6 +135,7 @@ async def handle_quiz_3(callback: CallbackQuery, state: FSMContext):
         text=messages.message_A4_q4,
         reply_markup=day_a_keyboards.keyboard_quiz_4,
         parse_mode="Markdown",
+        protect_content=True,
     )
 
     answer_q3 = callback.data.split("_")[-1]
@@ -138,10 +145,10 @@ async def handle_quiz_3(callback: CallbackQuery, state: FSMContext):
     data["quiz_sum"] += price
     await state.update_data(quiz_sum=data["quiz_sum"])
 
-    await state.set_state(DayAStates.quiz_q4)
+    await state.set_state(DayAStates.a_4_quiz_q4)
 
 @day_a_router.callback_query(
-    StateFilter(DayAStates.quiz_q4),
+    StateFilter(DayAStates.a_4_quiz_q4),
     F.data.startswith("day_a:a4:q4_")
 )
 async def handle_quiz_4(callback: CallbackQuery, state: FSMContext):
@@ -158,22 +165,20 @@ async def handle_quiz_4(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
         text=messages.create_quiz_result_message(final_sum),
         parse_mode="Markdown",
+        protect_content=True,
     )
 
-    await state.set_state(DayAStates.quiz_result)
-
     #Таска на кружок(A6)
-    user_id = callback.message.chat.id
+    user_id = callback.from_user.id
     file_id = await get_by_file_name("V1_krujok_jadnost")
 
     payload = {
         "user_id": user_id,
-        "text": messages.message_A3,
         "file_id": file_id
     }
 
     task_type = "send_video_note"
-    time_run = datetime.now(config["TIMEZONE"]) + timedelta(seconds=50)
+    time_run = datetime.now(config["TIMEZONE"]) + Timings.VIDEO_NOTE_DELAY
 
     await create(user_id, task_type, payload, time_run)
 
@@ -188,6 +193,9 @@ async def handle_quiz_4(callback: CallbackQuery, state: FSMContext):
     }
 
     task_type = "send_message_with_keyboard"
-    time_run = datetime.now(config["TIMEZONE"]) + timedelta(seconds=80)
+    time_run = datetime.now(config["TIMEZONE"]) + Timings.SYSTEM_MESSAGE_DELAY
 
     await create(user_id, task_type, payload, time_run)
+
+    await state.set_state(DayAStates.a_5_quiz_result_sent)
+

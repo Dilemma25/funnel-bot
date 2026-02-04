@@ -24,14 +24,14 @@ async def receive_file(message: Message, state: FSMContext):
         file_id = message.document.file_id
     elif message.video_note:
         file_id = message.video_note.file_id
+    elif message.photo:
+        file_id = message.photo[-1].file_id
     else:
         await message.answer("❌ Отправь видео, документ или фото")
         return
 
-    # Сохрани file_id в контексте
     await state.update_data(file_id=file_id)
 
-    # Попроси названия
     await message.answer("✅ Файл получен!\n\nТеперь отправь названия для этого файла")
     await state.set_state(AdminStates.waiting_for_file_name)
 

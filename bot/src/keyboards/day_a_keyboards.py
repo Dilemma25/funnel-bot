@@ -51,3 +51,9 @@ keyboard_quiz_4 = InlineKeyboardMarkup(
         [InlineKeyboardButton(text="Очень часто, особенно акции", callback_data="day_a:a4:q4_v4")],
     ]
 )
+
+# keybooard_A7 = InlineKeyboardMarkup(
+#     inline_keyboard=[
+#         [InlineKeyboardButton(text="", callback_data=)]
+#     ]
+# )

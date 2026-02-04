@@ -21,7 +21,6 @@ class Scheduler:
         self.arq_pool = None
 
     async def push_ready_tasks(self):
-        # Создаем Redis клиент для лока
         redis_client = Redis(
             host=config["REDIS"]["HOST"],
             port=int(config["REDIS"]["PORT"]),
@@ -33,11 +32,11 @@ class Scheduler:
             async with Lock(
                     redis_client,
                     name=config["SCHEDULER_LOCK_KEY"],
-                    timeout=70,  # Лок живет 50 секунд
-                    blocking_timeout=1  # Ждем лок 1 секунду, потом выходим
+                    timeout=70,
+                    blocking_timeout=1,
             ) as lock:
 
-                if not lock.owned():
+                if not await lock.owned():
                     logger.info("Another scheduler is running, skipping...")
                     return
 
@@ -85,7 +84,6 @@ class Scheduler:
             logger.error(f"Error in push_ready_tasks: {e}", exc_info=True)
 
         finally:
-            # Закрываем arq pool
             if self.arq_pool:
                 await self.arq_pool.close()
                 logger.info("ARQ pool closed")

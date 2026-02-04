@@ -1,7 +1,8 @@
-from src.processing.tasks import SendMessageTask
-from src.processing.tasks import SendDocumentTask
-from src.processing.tasks import SendMessageWithKeyboardTask
-from src.processing.tasks import SendVideNoteTask
+from src.processing.tasks.messaging import SendMessageTask
+from src.processing.tasks.messaging import SendDocumentTask
+from src.processing.tasks.messaging import SendMessageWithKeyboardTask
+from src.processing.tasks.messaging import SendVideNoteTask
+from src.processing.tasks.messaging import SendVideTask
 from src.safe_bot import SafeBot
 
 
@@ -12,6 +13,7 @@ class TaskFactory:
             "send_document" : SendDocumentTask,
             "send_message_with_keyboard" : SendMessageWithKeyboardTask,
             "send_video_note" : SendVideNoteTask,
+            "send_video" : SendVideTask,
         }
 
     def create_task_with_bot(self, task_type, bot: SafeBot, payload: dict):

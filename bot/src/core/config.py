@@ -24,6 +24,8 @@ config = {
     'SCHEDULER_LOCK_KEY' : os.getenv('SCHEDULER_LOCK_KEY'),
 
     'REDIS_STREAM_KEY' : os.getenv('REDIS_STREAM_KEY'),
+
+    'DEV_MODE' : os.getenv('DEV_MODE') == 'TRUE',
 }
 
 TORTOISE_ORM = {

@@ -13,9 +13,9 @@ from src.states.day_a import DayAStates
 import src.controllers.day_a.messages as messages
 from src.core.config import config
 from . import day_a_router
+from src.controllers.day_a.timings import Timings
 
 from datetime import datetime
-from datetime import timedelta
 
 
 @day_a_router.message(CommandStart())
@@ -26,17 +26,22 @@ async def start_day_a(message: Message, state: FSMContext):
         messages.message_A1,
         parse_mode="Markdown",
         reply_markup=keyboard_A1,
+        protect_content=True,
     )
 
-    await state.set_state(DayAStates.starting_day_a)
+    await state.set_state(DayAStates.a_1_greeting_sent)
 
 
 @day_a_router.callback_query(
-    StateFilter(DayAStates.starting_day_a),
+    StateFilter(DayAStates.a_1_greeting_sent),
     F.data == "day_a:a1:start"
 )
 async def send_video_lid(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
+
+    user_id = callback.from_user.id
+
+    await callback.message.edit_reply_markup(reply_markup=None)
 
     file_id = await get_by_file_name("test_big")
 
@@ -47,10 +52,9 @@ async def send_video_lid(callback: CallbackQuery, state: FSMContext):
         parse_mode="Markdown",
     )
 
+    #Таска A3
     task_type = "send_document"
     file_id = await get_by_file_name("test_pdf")
-
-    user_id = callback.message.chat.id
 
     payload = {
         "user_id": user_id,
@@ -58,11 +62,10 @@ async def send_video_lid(callback: CallbackQuery, state: FSMContext):
         "file_id": file_id
     }
 
-    time_run = datetime.now(config["TIMEZONE"]) + timedelta(seconds=30)
+    time_run = datetime.now(config["TIMEZONE"]) + Timings.CHECKLIST_DELAY
 
     await create(user_id, task_type, payload, time_run)
 
-    # Таска с клавиатурой
     keyboard_json = [
         [{"text": "Нашёл(ла) несколько пунктов про себя", "callback_data": "day_a:a3:found"}],
         [{"text": "Пока не вижу явных проблем", "callback_data": "day_a:a3:not_found"}],
@@ -73,8 +76,7 @@ async def send_video_lid(callback: CallbackQuery, state: FSMContext):
         "text": messages.message_A3_kb,
         "keyboard": keyboard_json
     }
-    time_run = datetime.now(config["TIMEZONE"]) + timedelta(seconds=60)
+    time_run = datetime.now(config["TIMEZONE"]) + Timings.CHECKLIST_KEYBOARD_DELAY
     await create(user_id, "send_message_with_keyboard", payload, time_run)
 
-    await state.set_state(DayAStates.waiting_for_checklist_choice)
-
+    await state.set_state(DayAStates.a_2_video_sent)

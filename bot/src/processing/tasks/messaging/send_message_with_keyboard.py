@@ -1,13 +1,9 @@
-from src.processing.tasks.base import BaseTask
-from src.safe_bot import SafeBot
+from src.processing.tasks.messaging.base_messaging import BaseMessagingTask
 from aiogram.types import InlineKeyboardButton
 from aiogram.types import InlineKeyboardMarkup
 
 
-class SendMessageWithKeyboardTask(BaseTask):
-    def __init__(self, bot: SafeBot, payload: dict):
-        self.bot = bot
-        self.payload = payload
+class SendMessageWithKeyboardTask(BaseMessagingTask):
 
     async def execute(self):
 
