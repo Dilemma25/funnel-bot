@@ -71,7 +71,7 @@ async def handle_a7_next(callback: CallbackQuery, state: FSMContext):
     }
 
     task_type = "send_message"
-    time_run = datetime.now(config["TIMEZONE"]) + Timings.REMEMBER_ABOUT_DISCOUNT
+    time_run = datetime.now(config["TIMEZONE"]) + Timings.DISCOUNT_TIMER
 
     await create(user_id, task_type, payload, time_run)
 
@@ -151,6 +151,8 @@ async def handle_reviews(callback: CallbackQuery, state: FSMContext):
         )
 
     await state.set_state(DayAStates.day_a_reviews_sent)
+
+
 
 #TODO сделать оплаты
 @day_a_router.callback_query(F.data.contains(":buy"))
