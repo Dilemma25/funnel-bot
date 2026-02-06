@@ -1,8 +1,9 @@
 from src.models import Media
 
 
-async def save_media(file_name: str, file_id: str):
+async def save_media(file_id, file_code: str, offer_id):
     await Media.create(
-        name=file_name,
         file_id=file_id,
+        code=file_code,
+        offer_id=offer_id,
     )

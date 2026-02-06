@@ -1,6 +1,8 @@
 import asyncio
 
 from arq.connections import RedisSettings
+from tortoise.transactions import in_transaction
+
 from src.core.config import config
 
 import logging
@@ -67,16 +69,22 @@ async def send_scheduled_message(ctx, task_id, task_type, payload):
             payload=payload
         )
 
+        async with in_transaction() as conn:
+            task = await ScheduledTask.get(id=task_id, using_db=conn)
+
+            if not task.processed and hasattr(handler, "prepare"):
+
+                await handler.prepare(conn)
+
+                task = await ScheduledTask.get(id=task_id, using_db=conn.connection)
+                task.processed = True
+                await task.save()
+
         await handler.execute()
-
-        task = await ScheduledTask.get(id=task_id)
-        task.processed = True
-
-        await task.save()
 
         logger.info(f"Task {task_id} completed and saved to DB")
 
-        await asyncio.sleep(2)
+        await asyncio.sleep(1)
 
     except Exception as e:
         logger.error(f"Error handling task {task_id}: {e}", exc_info=True)
@@ -99,12 +107,12 @@ class WorkerSettings:
 
     keep_result = 3600
 
-    max_tries = 1
+    max_tries = 3
 
     on_startup = startup
     on_shutdown = shutdown
 
-    health_check_interval = 5
+    health_check_interval = 60
 
     queue_name = "messages_for_users"
 

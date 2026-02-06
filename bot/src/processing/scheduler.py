@@ -2,9 +2,10 @@ from arq import create_pool
 from arq.connections import RedisSettings
 from redis.asyncio import Redis
 from redis.asyncio.lock import Lock
+from tortoise.transactions import in_transaction
 
 from src.core.config import config
-from src.views.tasks import get_no_processed
+from src.views.tasks import get_no_processed_tasks
 
 import logging
 from datetime import datetime
@@ -49,7 +50,9 @@ class Scheduler:
                 ))
 
                 now = datetime.now(config['TIMEZONE'])
-                ready_tasks = await get_no_processed(now)
+
+                async with in_transaction() as conn:
+                    ready_tasks = await get_no_processed_tasks(now, conn)
 
                 if not ready_tasks:
                     logger.info("No ready tasks found")
@@ -58,11 +61,6 @@ class Scheduler:
                 logger.info(f"Found {len(ready_tasks)} ready tasks")
 
                 for task in ready_tasks:
-                    if task.user.is_message_blocked:
-                        task.processed = True
-                        await task.save()
-                        logger.info(f"Task {task.id} skipped - user blocked bot")
-                        continue
 
                     job = await self.arq_pool.enqueue_job(
                         'send_scheduled_message',

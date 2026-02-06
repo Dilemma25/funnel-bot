@@ -2,6 +2,8 @@ from aiogram import F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from aiogram.types import CallbackQuery
+
+from src.models.offer import OfferCodesEnum
 from src.states.admin import AdminStates
 from src.views.media import save_media
 from . import admin_router
@@ -42,16 +44,17 @@ async def receive_file_name(message: Message, state: FSMContext):
         await message.answer("❌ Отправь текст (название файла)")
         return
 
-    name = message.text
+    file_code = message.text
 
-    print(name)
+    print(file_code)
 
     data = await state.get_data()
     file_id = data.get('file_id')
 
     try:
-        await save_media(name, file_id)
-        await message.answer(f"✅ Файл '{name}' сохранён в БД")
+        #TODO поправить потом чтоб для разных предложений можно было вводить
+        await save_media(file_code, file_id, OfferCodesEnum.SMART_WALLET)
+        await message.answer(f"✅ Файл '{file_code}' сохранён в БД")
     except Exception as e:
         print(e)
         await message.answer(f"❌ Ошибка: {str(e)}")

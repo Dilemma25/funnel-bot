@@ -2,12 +2,14 @@ from aiogram import F
 from aiogram.filters import StateFilter
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
+from tortoise.transactions import in_transaction
 
 from src.keyboards import day_a_keyboards as day_a_keyboards
+from src.models.offer import OfferCodesEnum
 from src.states.day_a import DayAStates
 from src.controllers.day_a.consts import QUIZ_ANSWERS
-from src.views.media import get_by_file_name
-from src.views.tasks import create
+from src.views.media import get_media_by_file_code
+from src.views.tasks import create_task
 from src.core.config import config
 from src.controllers.day_a import messages as messages
 from . import day_a_router
@@ -168,34 +170,38 @@ async def handle_quiz_4(callback: CallbackQuery, state: FSMContext):
         protect_content=True,
     )
 
-    #Таска на кружок(A6)
-    user_id = callback.from_user.id
-    file_id = await get_by_file_name("V1_krujok_jadnost")
+    offer_id = await state.get_value("offer_id")
 
-    payload = {
-        "user_id": user_id,
-        "file_id": file_id
-    }
+    async with in_transaction() as conn:
 
-    task_type = "send_video_note"
-    time_run = datetime.now(config["TIMEZONE"]) + Timings.VIDEO_NOTE_DELAY
+        #Таска на кружок(A6)
+        user_id = callback.from_user.id
+        file_id = await get_media_by_file_code("V1_krujok_jadnost", offer_id)
 
-    await create(user_id, task_type, payload, time_run)
+        payload = {
+            "user_id": user_id,
+            "file_id": file_id
+        }
 
-    keyboard_json = [
-        [{"text": "Понятно, что дальше?", "callback_data": "day_a:a7:next"}],
-    ]
+        task_type = "send_video_note"
+        time_run = datetime.now(config["TIMEZONE"]) + Timings.VIDEO_NOTE_DELAY
 
-    payload = {
-        "user_id": user_id,
-        "text": messages.message_A7,
-        "keyboard" : keyboard_json
-    }
+        await create_task(user_id, task_type, payload, time_run, conn)
 
-    task_type = "send_message_with_keyboard"
-    time_run = datetime.now(config["TIMEZONE"]) + Timings.SYSTEM_MESSAGE_DELAY
+        keyboard_json = [
+            [{"text": "Понятно, что дальше?", "callback_data": "day_a:a7:next"}],
+        ]
 
-    await create(user_id, task_type, payload, time_run)
+        payload = {
+            "user_id": user_id,
+            "text": messages.message_A7,
+            "keyboard" : keyboard_json
+        }
+
+        task_type = "send_message_with_keyboard"
+        time_run = datetime.now(config["TIMEZONE"]) + Timings.SYSTEM_MESSAGE_DELAY
+
+        await create_task(user_id, task_type, payload, time_run, conn)
 
     await state.set_state(DayAStates.a_5_quiz_result_sent)
 

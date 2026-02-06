@@ -26,6 +26,11 @@ config = {
     'REDIS_STREAM_KEY' : os.getenv('REDIS_STREAM_KEY'),
 
     'DEV_MODE' : os.getenv('DEV_MODE') == 'TRUE',
+
+    'SHOP_SECRET_KEY' : os.getenv('SHOP_SECRET_KEY'),
+    'SHOP_ID': os.getenv('SHOP_ID'),
+
+    'DEFAULT_SMART_WALLET_PRICE': float(os.getenv('DEFAULT_SMART_WALLET_PRICE')),
 }
 
 TORTOISE_ORM = {

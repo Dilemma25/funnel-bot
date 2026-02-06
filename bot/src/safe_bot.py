@@ -8,6 +8,10 @@ class SafeBot(Bot):
         return await super().send_message(chat_id, text=text, **kwargs)
 
     @safe_send
+    async def send_video_note(self, chat_id: int, video_note, **kwargs):
+        return await super().send_video_note(chat_id, video_note=video_note, **kwargs)
+
+    @safe_send
     async def send_video(self, chat_id: int, video, **kwargs):
         return await super().send_video(chat_id, video=video, **kwargs)
 

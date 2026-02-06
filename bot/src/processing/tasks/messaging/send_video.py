@@ -1,7 +1,7 @@
 from src.processing.tasks.messaging.base_messaging import BaseMessagingTask
 
 
-class SendVideTask(BaseMessagingTask):
+class SendVideoTask(BaseMessagingTask):
 
     async def execute(self):
 

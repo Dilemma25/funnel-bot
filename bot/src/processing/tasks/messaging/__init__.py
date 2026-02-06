@@ -1,15 +1,17 @@
-from src.processing.tasks.messaging.send_document import SendDocumentTask
-from src.processing.tasks.messaging.send_message import SendMessageTask
-from src.processing.tasks.messaging.send_message_with_keyboard import SendMessageWithKeyboardTask
-from src.processing.tasks.messaging.send_video_note import SendVideNoteTask
-from src.processing.tasks.messaging.send_video import SendVideTask
+from .send_document import SendDocumentTask
+from .send_message import SendMessageTask
+from .send_message_with_keyboard import SendMessageWithKeyboardTask
+from .send_video_note import SendVideoNoteTask
+from .send_video import SendVideoTask
+from .remove_discount_and_send_message import RemoveDiscountAndSendMessageTask
 
 __all__ = [
     'SendMessageTask',
     'SendDocumentTask',
     'SendMessageWithKeyboardTask',
-    'SendVideNoteTask',
-    'SendVideTask',
+    'SendVideoNoteTask',
+    'SendVideoTask',
+    'RemoveDiscountAndSendMessageTask'
 ]
 
 
