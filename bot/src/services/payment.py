@@ -18,7 +18,7 @@ class PaymentService:
 
         payment = Payment.create({
             "amount": {
-                "value": f"{amount}.00",
+                "value": f"{amount}",
                 "currency": "RUB"
             },
             "confirmation": {
@@ -26,7 +26,7 @@ class PaymentService:
                 "return_url": "https://t.me/@ToDo25Bot"
             },
             "capture": True,
-            "test": True,  # ← ЯВНО указываем тестовый режим (опционально)
+            "test": config["DEV_MODE"],  # ← ЯВНО указываем тестовый режим (опционально)
             "description": description,
             "metadata": {
                 "user_id": user_id,
@@ -38,7 +38,8 @@ class PaymentService:
             "payment_id": payment.id,
             "confirmation_url": payment.confirmation.confirmation_url,
             "status": payment.status,
-            "amount": amount
+            "amount": amount,
+            "created_at": payment.created_at,
         }
 
     @staticmethod
@@ -60,5 +61,6 @@ class PaymentService:
             "status": payment.status,  # "pending", "waiting_for_capture", "succeeded", "canceled"
             "paid": payment.paid,  # True/False
             "amount": float(payment.amount.value) if payment.amount else 0,
-            "user_id": payment.metadata.get("user_id") if payment.metadata else None
+            "user_id": payment.metadata.get("user_id") if payment.metadata else None,
+            "created_at": payment.created_at,
         }

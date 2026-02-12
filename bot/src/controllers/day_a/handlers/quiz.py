@@ -17,6 +17,7 @@ from . import day_a_router
 from datetime import datetime
 
 from src.controllers.day_a.timings import Timings
+from ..file_codes import FileCodes
 
 
 @day_a_router.callback_query(
@@ -170,13 +171,13 @@ async def handle_quiz_4(callback: CallbackQuery, state: FSMContext):
         protect_content=True,
     )
 
-    offer_id = await state.get_value("offer_id")
+    await state.update_data(quiz_sum=None)
 
     async with in_transaction() as conn:
 
         #Таска на кружок(A6)
         user_id = callback.from_user.id
-        file_id = await get_media_by_file_code("V1_krujok_jadnost", offer_id)
+        file_id = await get_media_by_file_code(FileCodes.VIDEO_NOTE_JADNOST, OfferCodesEnum.SMART_WALLET)
 
         payload = {
             "user_id": user_id,
@@ -188,6 +189,7 @@ async def handle_quiz_4(callback: CallbackQuery, state: FSMContext):
 
         await create_task(user_id, task_type, payload, time_run, conn)
 
+        #Таска на переход после кружка
         keyboard_json = [
             [{"text": "Понятно, что дальше?", "callback_data": "day_a:a7:next"}],
         ]
@@ -198,7 +200,7 @@ async def handle_quiz_4(callback: CallbackQuery, state: FSMContext):
             "keyboard" : keyboard_json
         }
 
-        task_type = "send_message_with_keyboard"
+        task_type = "send_message"
         time_run = datetime.now(config["TIMEZONE"]) + Timings.SYSTEM_MESSAGE_DELAY
 
         await create_task(user_id, task_type, payload, time_run, conn)

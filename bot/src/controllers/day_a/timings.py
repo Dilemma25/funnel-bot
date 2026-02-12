@@ -26,10 +26,10 @@ class DayATimings:
     # A8 → A9: Предложение курса
     A8_TO_A9 = timedelta(seconds=DEV_DELAY if IS_DEV else 30)
 
-    DISCOUNT_TIMER = timedelta(seconds=100 if IS_DEV else 30)
+    DISCOUNT_TIMER = timedelta(seconds=130 if IS_DEV else 30)
 
     #Если нажал на оплату, но не оплатил, напоминаем о таймере
-    I1_TO_A9_1_1 = timedelta(seconds=DEV_DELAY if IS_DEV else 30)
+    I1_TO_A9_1_1 = timedelta(seconds=70 if IS_DEV else 30)
 
     #Возврат к оферу после FAQ
     A9_2_TO_A9_2_1 = timedelta(seconds=DEV_DELAY if IS_DEV else 30)

@@ -8,10 +8,11 @@ COPY pyproject.toml poetry.lock* ./
 
 RUN pip install poetry && poetry install --no-root
 
+#COPY ../.. .
 COPY . .
 
 RUN mkdir -p /app/var/log
 
 ENV PYTHONPATH=/app
 
-CMD ["poetry", "run", "arq", "src.processing.workers.user_worker.worker_settings.WorkerSettings"]
+CMD ["/bin/sh", "-c", "echo \"* * * * * cd /app && PYTHONPATH=/app /usr/local/bin/poetry run python src/processing/schedulers/task_scheduler/scheduler_runner.py\" | crontab - && cron -f"]

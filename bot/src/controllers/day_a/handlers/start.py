@@ -9,7 +9,6 @@ from tortoise.transactions import in_transaction
 from src.keyboards.day_a_keyboards import keyboard_A1
 from src.views.user import get_or_create_user
 from src.views.media import get_media_by_file_code
-from src.views.offer import get_offer_by_code
 from src.views.user_offer import get_user_offer
 from src.views.user_offer import create_user_offer
 from src.views.tasks import create_task
@@ -22,27 +21,40 @@ from src.controllers.day_a.timings import Timings
 
 from datetime import datetime
 
+from ..file_codes import FileCodes
+
 
 @day_a_router.message(CommandStart())
 async def start_day_a(message: Message, state: FSMContext):
     await get_or_create_user(message.from_user.id)
 
-    async with in_transaction() as conn:
-        user_offer = await get_user_offer(message.from_user.id, OfferCodesEnum.SMART_WALLET, conn)
-        if user_offer:
-            await message.answer(
-                text="Вы уже взаимодействовали с этим предложением",
-                parse_mode="Markdown",
-                protect_content=True,
-            )
+    user_offer = await get_user_offer(
+        user_id=message.from_user.id,
+        offer_code=OfferCodesEnum.SMART_WALLET
+    )
 
-            return
-        offer = await get_offer_by_code(OfferCodesEnum.SMART_WALLET, connection=conn)
-        await create_user_offer(message.from_user.id, offer.id, connection=conn)
+
+    if user_offer and not config["DEV_MODE"]:
+
+        await message.answer(
+            text="Вы уже взаимодействовали с этим предложением",
+            parse_mode="Markdown",
+            protect_content=True,
+        )
+
+        return
+
+    if not user_offer:
+
+        user_id = message.from_user.id
+
+        await create_user_offer(
+            user_id=user_id,
+            offer_code=OfferCodesEnum.SMART_WALLET
+        )
 
     await state.update_data(
         offer_code=OfferCodesEnum.SMART_WALLET,
-        offer_id=offer.id,
     )
 
     await message.answer(
@@ -53,6 +65,73 @@ async def start_day_a(message: Message, state: FSMContext):
     )
 
     await state.set_state(DayAStates.a_1_greeting_sent)
+
+    # #TODO Удалить
+    #
+    user_id = message.from_user.id
+
+    async with in_transaction() as conn:
+        now = datetime.now(config["TIMEZONE"])
+        offer_code = OfferCodesEnum.SMART_WALLET
+
+        # ===== ТАСКА 1: Установка скидки + оффер =====
+        payload_offer = {
+            "user_id": user_id,
+            "text": messages.message_A9,
+            "keyboard": [
+                [{"text": "Забрать за 2 490 ₽", "callback_data": "day_a:a9:buy"}],
+                [{"text": "Узнать подробнее", "callback_data": "day_a:a9:faq"}],
+            ],
+            # Параметры скидки
+            "offer_code": offer_code,
+            # TODO поменить прайсы скидок в отдельном файле с констами
+            "discount_price": 2490,
+            "discount_duration": Timings.DISCOUNT_TIMER.total_seconds(),
+        }
+
+        await create_task(
+            user_id=user_id,
+            task_type="set_discount_and_send_message_task",
+            payload=payload_offer,
+            run_at=now + Timings.OFFER_DELAY,
+            connection=conn
+        )
+
+        # ===== ТАСКА 2: Напоминание о таймере =====
+        payload_reminder = {
+            "user_id": user_id,
+            "text": messages.message_A9_1_1,
+            "keyboard": [
+                [{"text": "💳 Оплатить 2 490 ₽", "callback_data": "day_a:a9:buy"}],
+            ],
+        }
+
+        await create_task(
+            user_id=user_id,
+            task_type="send_message",
+            payload=payload_reminder,
+            run_at=now + Timings.REMEMBER_ABOUT_DISCOUNT,
+            connection=conn
+        )
+
+        # ===== ТАСКА 3: Окончание скидки =====
+        payload_timeout = {
+            "user_id": user_id,
+            "text": messages.message_A10_FINAL,
+            "offer_code": offer_code,
+            "keyboard": [
+                [{"text": "💳 Оплатить 3990 ₽", "callback_data": "day_a:a9:buy"}],
+            ],
+        }
+
+        await create_task(
+            user_id=user_id,
+            task_type="remove_discount_and_send_message_task",
+            payload=payload_timeout,
+            run_at=now + Timings.DISCOUNT_TIMER,
+            connection=conn
+        )
+
 
 
 @day_a_router.callback_query(
@@ -66,9 +145,10 @@ async def send_video_lid(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.edit_reply_markup(reply_markup=None)
 
-    offer_id = await state.get_value("offer_id")
-
-    file_id = await get_media_by_file_code("test_big", offer_id)
+    file_id = await get_media_by_file_code(
+        file_code=FileCodes.LID_MAGNET,
+        offer_code=OfferCodesEnum.SMART_WALLET,
+    )
 
     await callback.message.answer_video(
         video=file_id,
@@ -77,12 +157,10 @@ async def send_video_lid(callback: CallbackQuery, state: FSMContext):
         parse_mode="Markdown",
     )
 
-    offer_id = await state.get_value("offer_id")
-
     async with in_transaction() as conn:
         #Таска A3
         task_a3_type = "send_document"
-        task_a3_file_id = await get_media_by_file_code("test_pdf", offer_id)
+        task_a3_file_id = await get_media_by_file_code(FileCodes.CHECK_LIST, OfferCodesEnum.SMART_WALLET)
 
         task_a3_payload = {
             "user_id": user_id,
@@ -95,7 +173,7 @@ async def send_video_lid(callback: CallbackQuery, state: FSMContext):
         await create_task(user_id, task_a3_type, task_a3_payload, task_a3_time_run, conn)
 
         #Таска на клавиатуру после чек листа
-        task_a3_kb_type = "send_message_with_keyboard"
+        task_a3_kb_type = "send_message"
 
         task_a3_kb_keyboard_json = [
             [{"text": "Нашёл(ла) несколько пунктов про себя", "callback_data": "day_a:a3:found"}],

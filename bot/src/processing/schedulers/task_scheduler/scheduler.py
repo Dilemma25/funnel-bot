@@ -5,17 +5,12 @@ from redis.asyncio.lock import Lock
 from tortoise.transactions import in_transaction
 
 from src.core.config import config
+from src.core.logging_config import setup_logging
 from src.views.tasks import get_no_processed_tasks
 
-import logging
 from datetime import datetime
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
+logger = setup_logging(__name__, service="task_scheduler")
 
 class Scheduler:
     def __init__(self):

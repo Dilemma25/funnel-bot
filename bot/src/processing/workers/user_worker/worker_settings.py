@@ -1,23 +1,19 @@
 import asyncio
 
 from arq.connections import RedisSettings
+from arq import Retry
 from tortoise.transactions import in_transaction
 
 from src.core.config import config
-
-import logging
-
+from src.core.logging_config import setup_logging
 from src.models import ScheduledTask
+from src.processing.tasks.preparable import PreparableTask
 from src.safe_bot import SafeBot
 from src.core.database import init_db
 from src.core.redis import init_redis
 from src.processing.task_factory import TaskFactory
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+logger = setup_logging(__name__, service="user_worker")
 
 
 async def startup(ctx):
@@ -58,10 +54,13 @@ async def send_scheduled_message(ctx, task_id, task_type, payload):
 
     logger.info(f"Processing task {task_id}: {task_type}")
 
-    try:
+    bot: SafeBot = ctx["bot"]
+    task_factory: TaskFactory = ctx["task_factory"]
 
-        bot: SafeBot = ctx["bot"]
-        task_factory: TaskFactory = ctx["task_factory"]
+    job_try = ctx.get("job_try", 1)
+    max_tries = ctx.get("max_tries", 3)
+
+    try:
 
         handler = task_factory.create_task_with_bot(
             task_type=task_type,
@@ -70,15 +69,21 @@ async def send_scheduled_message(ctx, task_id, task_type, payload):
         )
 
         async with in_transaction() as conn:
-            task = await ScheduledTask.get(id=task_id, using_db=conn)
 
-            if not task.processed and hasattr(handler, "prepare"):
+            task = await ScheduledTask.filter(id=task_id).using_db(conn).first()
 
-                await handler.prepare(conn)
+            #Если таска не выполнялась
+            if not task.processed:
+                #Если таска работает с бд
+                if isinstance(handler, PreparableTask):
 
-                task = await ScheduledTask.get(id=task_id, using_db=conn.connection)
+                    await handler.prepare(conn)
+
+                    await task.refresh_from_db(using_db=conn)
+                    await task.save(using_db=conn)
+
                 task.processed = True
-                await task.save()
+                await task.save(using_db=conn)
 
         await handler.execute()
 
@@ -89,6 +94,13 @@ async def send_scheduled_message(ctx, task_id, task_type, payload):
     except Exception as e:
         logger.error(f"Error handling task {task_id}: {e}", exc_info=True)
 
+        if job_try < max_tries:
+            # Delays will be 5s, 10s, 15s
+            defer_by = job_try * 5
+            print(f"Retrying in {defer_by} seconds...")
+            raise Retry(defer=defer_by) from e
+
+        raise Exception("Connection Error: The service is currently unavailable. Please try again later.")
 
 class WorkerSettings:
     """Настройки arq worker"""

@@ -1,19 +1,31 @@
 services:
-  funnel-scheduler:
+  funnel-task-scheduler:
     build:
       context: ./bot
-      dockerfile: ./src/processing/Dockerfile
-    container_name: funnel-scheduler
+      dockerfile: ./src/processing/schedulers/task_scheduler/Dockerfile
+    container_name: funnel-task-scheduler
     env_file: .env
     network_mode: host
     volumes:
       - ./bot:/app
-      - ./var/log:/app/var/log
+      - ./logs:/app/logs
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     restart: unless-stopped
-
-  user-consumer:
+  funnel-payment-checker-scheduler:
+    build:
+      context: ./bot
+      dockerfile: ./src/processing/schedulers/payment_checker_scheduler/Dockerfile
+    container_name: funnel-payment_checker_schedule
+    env_file: .env
+    network_mode: host
+    volumes:
+      - ./bot:/app
+      - ./logs:/app/logs
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+  funnel-user-consumer:
     build:
       context: ./bot
       dockerfile: ./src/processing/workers/user_worker/Dockerfile
@@ -22,10 +34,11 @@ services:
     network_mode: host
     volumes:
       - ./bot:/app
-      - ./var/log:/app/var/log
+      - ./logs:/app/logs
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     restart: unless-stopped
+
 
 volumes:
   scheduler_logs:

@@ -4,6 +4,7 @@ from .offer import Offer
 from .scheduled_task import ScheduledTask
 from .user import User
 from .media import Media
+from .user_state import UserState
 
 
 __all__ = [
@@ -12,5 +13,6 @@ __all__ = [
     "Media",
     "UserOfferPayment",
     "UserOffer",
-    "Offer"
+    "Offer",
+    "UserState",
 ]

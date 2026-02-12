@@ -9,8 +9,11 @@ class PaymentStatusEnum:
     CANCELED = 'CANCELED'
     FAILED = 'FAILED'
 
+
+#TODO Хранить урд платежа
 class UserOfferPayment(Model):
-    id = fields.CharField(max_length=200, pk=True)
+    id = fields.BigIntField(pk=True)
+    yookassa_payment_id = fields.CharField(max_length=200)
 
     user_offer = fields.ForeignKeyField(
         "models.UserOffer",
@@ -22,3 +25,6 @@ class UserOfferPayment(Model):
     amount = fields.FloatField()
     status = fields.CharField(max_length=30, default=PaymentStatusEnum.PENDING)
     created_at = fields.DatetimeField(default=datetime.now)
+
+    class Meta:
+        table = "user_offer_payments"

@@ -1,10 +1,10 @@
 from src.models import Offer
 
 
-async def get_offer_by_code(code, connection):
-    offer = await Offer.get(
-        code=code,
-        using_db=connection
-    )
+async def get_offer_by_code(code, connection=None):
+    query = Offer.filter(code=code)
 
-    return offer
+    if connection:
+        query = query.using_db(connection)
+
+    return await query.first()

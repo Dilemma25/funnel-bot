@@ -1,8 +1,9 @@
 from .base_messaging import BaseMessagingTask
+from src.processing.tasks.preparable import PreparableTask
 from src.views.user_offer import remove_discount
 
 
-class RemoveDiscountAndSendMessageTask(BaseMessagingTask):
+class RemoveDiscountAndSendMessageTask(BaseMessagingTask, PreparableTask):
 
     async def prepare(self, connection):
         """Убираем скидку в транзакции"""
@@ -30,7 +31,12 @@ class RemoveDiscountAndSendMessageTask(BaseMessagingTask):
 
     async def execute(self):
         """Отправка вне транзакции"""
+        keyboard = self._build_keyboard()
+
         await self.bot.send_message(
             chat_id=self.payload["user_id"],
             text=self.payload["text"],
+            reply_markup=keyboard,
+            parse_mode="Markdown",
+            protect_content=True,
         )
