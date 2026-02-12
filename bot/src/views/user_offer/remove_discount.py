@@ -1,4 +1,4 @@
-from src.core.config import config
+from src.core.config import config, settings
 from src.models import UserOffer
 from datetime import datetime
 import logging
@@ -30,18 +30,18 @@ async def remove_discount(
         logger.warning(f"UserOffer не найден для user_id={user_id}, offer={offer_code}")
         return
 
-    now = datetime.now(config["TIMEZONE"])
+    now = datetime.now(settings.timezone)
 
     discount_expires = user_offer.discount_expires_at
     if discount_expires and discount_expires.tzinfo is None:
         # Если naive — добавь timezone
-        discount_expires = discount_expires.replace(tzinfo=config["TIMEZONE"])
+        discount_expires = discount_expires.replace(tzinfo=settings.timezone)
 
     # Проверяем, есть ли активная скидка
     if (
             user_offer.discount_price is not None and
             user_offer.discount_expires_at and
-            user_offer.discount_expires_at.replace(tzinfo=config["TIMEZONE"]) > now
+            user_offer.discount_expires_at.replace(tzinfo=settings.timezone) > now
     ):
         user_offer.discount_price = None
         user_offer.discount_expires_at = None

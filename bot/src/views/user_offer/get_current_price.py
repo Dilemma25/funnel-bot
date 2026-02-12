@@ -1,4 +1,4 @@
-from src.core.config import config
+from src.core.config import settings
 from src.models import UserOffer, Offer
 from datetime import datetime
 import logging
@@ -39,7 +39,7 @@ async def get_current_price(user_id: int, offer_code: str, connection=None) -> f
         logger.info(f"UserOffer не найден, возвращаем базовую цену: {offer.base_price} ₽")
         return offer.base_price
 
-    now = datetime.now(config["TIMEZONE"])
+    now = datetime.now(settings.timezone)
     # Проверяем активность скидки
     if (
             user_offer.discount_price is not None and
@@ -66,7 +66,7 @@ async def is_discount_active(user_id: int, offer_code: str, connection=None) -> 
     if not user_offer:
         return False
 
-    now = datetime.now(config["TIMEZONE"])
+    now = datetime.now(settings.timezone)
 
     return (
             user_offer.discount_price is not None and

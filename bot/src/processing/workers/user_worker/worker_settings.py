@@ -1,10 +1,11 @@
 import asyncio
 
+from aiogram.exceptions import TelegramBadRequest
 from arq.connections import RedisSettings
 from arq import Retry
 from tortoise.transactions import in_transaction
 
-from src.core.config import config
+from src.core.config import settings
 from src.core.logging_config import setup_logging
 from src.models import ScheduledTask
 from src.processing.tasks.preparable import PreparableTask
@@ -12,6 +13,7 @@ from src.safe_bot import SafeBot
 from src.core.database import init_db
 from src.core.redis import init_redis
 from src.processing.task_factory import TaskFactory
+from src.views.sent_message import mark_message_as_deleted
 
 logger = setup_logging(__name__, service="user_worker")
 
@@ -22,7 +24,7 @@ async def startup(ctx):
 
     await init_db()
 
-    ctx["bot"] = SafeBot(config["BOT_TOKEN"])
+    ctx["bot"] = SafeBot(settings.bot_token)
     ctx["task_factory"] = TaskFactory()
     ctx["redis"] = init_redis()
 
@@ -102,14 +104,52 @@ async def send_scheduled_message(ctx, task_id, task_type, payload):
 
         raise Exception("Connection Error: The service is currently unavailable. Please try again later.")
 
+#TODO протестировать
+async def delete_message(
+                         ctx,
+                         message_id,
+                         telegram_message_id,
+                         chat_id,
+                         message_tag,
+                     ):
+    """Удаление истекших сообщений"""
+
+    logger.info(f"Deleting message {message_id} (tg_msg={telegram_message_id})")
+
+    bot = None
+
+    if message_tag != 'course':
+        bot = ctx["bot"]
+
+    try:
+        try:
+            await bot.delete_message(chat_id=chat_id, message_id=telegram_message_id)
+            logger.info(f"✅ Message {telegram_message_id} deleted from Telegram")
+
+        except TelegramBadRequest as e:
+            if "message to delete not found" in str(e).lower():
+                logger.warning(f"⚠️ Message {telegram_message_id} already deleted")
+            else:
+                raise
+
+        async with in_transaction() as conn:
+            await mark_message_as_deleted(message_id, conn)
+
+        logger.info(f"✅ Message {message_id} marked as deleted")
+
+    except Exception as e:
+        logger.error(f"❌ Error deleting message {message_id}: {e}", exc_info=True)
+
+
 class WorkerSettings:
     """Настройки arq worker"""
 
     redis_settings = RedisSettings(
-        host=config['REDIS']['HOST'],
-        port=int(config['REDIS']['PORT']),
-        database=int(config['REDIS']['DB']),
-    )
+        host=settings.redis_host,
+        port=settings.redis_port,
+        database=settings.redis_db
+    ),
+
 
     functions = [send_scheduled_message]
 

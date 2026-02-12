@@ -1,5 +1,4 @@
 import asyncio
-import logging
 
 from src.core.database import close_db
 from src.core.database import init_db

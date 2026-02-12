@@ -1,15 +1,15 @@
+from src.models.payment import PaymentStatusEnum
 from .base_messaging import BaseMessagingTask
 from src.processing.tasks.preparable import PreparableTask
 from src.views.user_offer import remove_discount
+from src.views.user_offer_payment import get_payment_with_status
+from src.views.user_offer import get_user_offer
 
 
 class RemoveDiscountAndSendMessageTask(BaseMessagingTask, PreparableTask):
 
     async def prepare(self, connection):
-        """Убираем скидку в транзакции"""
         # ✅ Проверяем, не купил ли пользователь уже
-        from src.views.user_offer_payment import get_successful_payment
-        from src.views.user_offer import get_user_offer
 
         user_offer = await get_user_offer(
             user_id=self.payload["user_id"],
@@ -17,10 +17,10 @@ class RemoveDiscountAndSendMessageTask(BaseMessagingTask, PreparableTask):
             connection=connection
         )
 
-        # Если есть успешный платёж - не снимаем скидку и не отправляем сообщение
-        successful_payment = await get_successful_payment(user_offer.id, connection)
-        if successful_payment:
-            return False  # сигнал не выполнять execute()
+        # # Если есть успешный платёж - не снимаем скидку и не отправляем сообщение
+        # successful_payment = await get_payment_with_status(user_offer.id, connection, PaymentStatusEnum.SUCCESSFUL)
+        # if successful_payment:
+        #     return False  # сигнал не выполнять execute()
 
         await remove_discount(
             user_id=self.payload["user_id"],
@@ -30,7 +30,6 @@ class RemoveDiscountAndSendMessageTask(BaseMessagingTask, PreparableTask):
         return True
 
     async def execute(self):
-        """Отправка вне транзакции"""
         keyboard = self._build_keyboard()
 
         await self.bot.send_message(

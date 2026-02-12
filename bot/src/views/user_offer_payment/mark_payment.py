@@ -35,6 +35,4 @@ async def mark_payment(payment_id: str, new_status: str, connection=None):
     else:
         await payment.save()
 
-    # logger.info(f"✅ Платёж {payment_id} помечен как SUCCESSFUL")
-
     return payment

@@ -5,7 +5,7 @@ from .scheduled_task import ScheduledTask
 from .user import User
 from .media import Media
 from .user_state import UserState
-
+from .sent_message import SentMessage
 
 __all__ = [
     "User",
@@ -15,4 +15,5 @@ __all__ = [
     "UserOffer",
     "Offer",
     "UserState",
+    "SentMessage",
 ]

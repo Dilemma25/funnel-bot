@@ -1,9 +1,10 @@
-from src.core.config import config
+from src.core.config import settings
 from src.models import UserOffer
 from datetime import datetime, timedelta
 import logging
 
-from src.views.user_offer_payment import get_successful_payment
+from src.models.payment import PaymentStatusEnum
+from src.views.user_offer_payment import get_payment_with_status
 
 
 logger = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ async def set_discount(
         connection: Опциональное подключение для транзакции
     """
 
-    expires_at = datetime.now(config["TIMEZONE"]) + timedelta(seconds=discount_duration)
+    expires_at = datetime.now(settings.timezone) + timedelta(seconds=discount_duration)
 
     # Получаем UserOffer
     query = UserOffer.filter(user_id=user_id, offer__code=offer_code)
@@ -40,7 +41,7 @@ async def set_discount(
     if not user_offer:
         raise ValueError(f"UserOffer не найден для user_id={user_id}, offer_code={offer_code}")
 
-    successful_payment = await get_successful_payment(user_offer.id, connection)
+    successful_payment = await get_payment_with_status(user_offer.id, connection, PaymentStatusEnum.SUCCESSFUL)
 
     if successful_payment:
         return None

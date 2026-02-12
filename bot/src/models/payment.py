@@ -1,6 +1,5 @@
 from tortoise import fields
 from tortoise.models import Model
-from datetime import datetime
 
 
 class PaymentStatusEnum:
@@ -10,21 +9,31 @@ class PaymentStatusEnum:
     FAILED = 'FAILED'
 
 
-#TODO Хранить урд платежа
 class UserOfferPayment(Model):
     id = fields.BigIntField(pk=True)
-    yookassa_payment_id = fields.CharField(max_length=200)
 
-    user_offer = fields.ForeignKeyField(
-        "models.UserOffer",
+    # ЮKassa данные
+    yookassa_payment_id = fields.CharField(max_length=300, unique=True)
+    yookassa_payment_url = fields.CharField(max_length=300)
+
+    user = fields.ForeignKeyField(
+        "models.User",
         related_name="payments",
-        on_delete=fields.SET_NULL,
-        null=True,
+        on_delete=fields.CASCADE
     )
 
+    offer = fields.ForeignKeyField(
+        "models.Offer",
+        related_name="payments",
+        on_delete=fields.CASCADE
+    )
+
+    # Данные платежа
     amount = fields.FloatField()
     status = fields.CharField(max_length=30, default=PaymentStatusEnum.PENDING)
-    created_at = fields.DatetimeField(default=datetime.now)
+
+    # Timestamps
+    created_at = fields.DatetimeField(auto_now_add=True)
 
     class Meta:
         table = "user_offer_payments"

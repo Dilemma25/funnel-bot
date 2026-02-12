@@ -1,6 +1,5 @@
 from aiogram import F
 from aiogram.filters import CommandStart
-from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from aiogram.types import CallbackQuery
@@ -12,29 +11,33 @@ from src.views.media import get_media_by_file_code
 from src.views.user_offer import get_user_offer
 from src.views.user_offer import create_user_offer
 from src.views.tasks import create_task
-from src.states.day_a import DayAStates
 from src.models.offer import OfferCodesEnum
 import src.controllers.day_a.messages as messages
-from src.core.config import config
+from src.core.config import settings
+from src.views.user_state.create_user_state import create_user_state
+from src.views.user_state.update_user_state import update_user_state
 from . import day_a_router
 from src.controllers.day_a.timings import Timings
 
 from datetime import datetime
 
-from ..file_codes import FileCodes
-
+from src.controllers.day_a.file_codes import FileCodes
+from src.controllers.day_a.user_states import DayAStates
 
 @day_a_router.message(CommandStart())
 async def start_day_a(message: Message, state: FSMContext):
-    await get_or_create_user(message.from_user.id)
+    user_id = message.from_user.id
+
+    await get_or_create_user(user_id)
+
 
     user_offer = await get_user_offer(
-        user_id=message.from_user.id,
+        user_id=user_id,
         offer_code=OfferCodesEnum.SMART_WALLET
     )
 
 
-    if user_offer and not config["DEV_MODE"]:
+    if user_offer and not settings.is_dev:
 
         await message.answer(
             text="Вы уже взаимодействовали с этим предложением",
@@ -46,12 +49,19 @@ async def start_day_a(message: Message, state: FSMContext):
 
     if not user_offer:
 
-        user_id = message.from_user.id
+        async with in_transaction() as conn:
 
-        await create_user_offer(
-            user_id=user_id,
-            offer_code=OfferCodesEnum.SMART_WALLET
-        )
+            user_offer = await create_user_offer(
+                user_id=user_id,
+                offer_code=OfferCodesEnum.SMART_WALLET,
+                connection=conn,
+            )
+
+            await create_user_state(
+                user_id=user_id,
+                offer_id=user_offer.offer_id,
+                connection=conn,
+            )
 
     await state.update_data(
         offer_code=OfferCodesEnum.SMART_WALLET,
@@ -64,80 +74,17 @@ async def start_day_a(message: Message, state: FSMContext):
         protect_content=True,
     )
 
-    await state.set_state(DayAStates.a_1_greeting_sent)
-
-    # #TODO Удалить
-    #
     user_id = message.from_user.id
 
-    async with in_transaction() as conn:
-        now = datetime.now(config["TIMEZONE"])
-        offer_code = OfferCodesEnum.SMART_WALLET
-
-        # ===== ТАСКА 1: Установка скидки + оффер =====
-        payload_offer = {
-            "user_id": user_id,
-            "text": messages.message_A9,
-            "keyboard": [
-                [{"text": "Забрать за 2 490 ₽", "callback_data": "day_a:a9:buy"}],
-                [{"text": "Узнать подробнее", "callback_data": "day_a:a9:faq"}],
-            ],
-            # Параметры скидки
-            "offer_code": offer_code,
-            # TODO поменить прайсы скидок в отдельном файле с констами
-            "discount_price": 2490,
-            "discount_duration": Timings.DISCOUNT_TIMER.total_seconds(),
-        }
-
-        await create_task(
-            user_id=user_id,
-            task_type="set_discount_and_send_message_task",
-            payload=payload_offer,
-            run_at=now + Timings.OFFER_DELAY,
-            connection=conn
-        )
-
-        # ===== ТАСКА 2: Напоминание о таймере =====
-        payload_reminder = {
-            "user_id": user_id,
-            "text": messages.message_A9_1_1,
-            "keyboard": [
-                [{"text": "💳 Оплатить 2 490 ₽", "callback_data": "day_a:a9:buy"}],
-            ],
-        }
-
-        await create_task(
-            user_id=user_id,
-            task_type="send_message",
-            payload=payload_reminder,
-            run_at=now + Timings.REMEMBER_ABOUT_DISCOUNT,
-            connection=conn
-        )
-
-        # ===== ТАСКА 3: Окончание скидки =====
-        payload_timeout = {
-            "user_id": user_id,
-            "text": messages.message_A10_FINAL,
-            "offer_code": offer_code,
-            "keyboard": [
-                [{"text": "💳 Оплатить 3990 ₽", "callback_data": "day_a:a9:buy"}],
-            ],
-        }
-
-        await create_task(
-            user_id=user_id,
-            task_type="remove_discount_and_send_message_task",
-            payload=payload_timeout,
-            run_at=now + Timings.DISCOUNT_TIMER,
-            connection=conn
-        )
+    await update_user_state(
+        user_id=user_id,
+        offer_code=OfferCodesEnum.SMART_WALLET,
+        last_activity_at=datetime.now(settings.tz),
+        state=DayAStates.A_1_STARTED
+    )
 
 
-
-@day_a_router.callback_query(
-    StateFilter(DayAStates.a_1_greeting_sent),
-    F.data == "day_a:a1:start"
-)
+@day_a_router.callback_query(F.data == "day_a:a1:start")
 async def send_video_lid(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
@@ -168,7 +115,7 @@ async def send_video_lid(callback: CallbackQuery, state: FSMContext):
             "file_id": task_a3_file_id
         }
 
-        task_a3_time_run = datetime.now(config["TIMEZONE"]) + Timings.CHECKLIST_DELAY
+        task_a3_time_run = datetime.now(settings.timezone) + Timings.CHECKLIST_DELAY
 
         await create_task(user_id, task_a3_type, task_a3_payload, task_a3_time_run, conn)
 
@@ -186,8 +133,15 @@ async def send_video_lid(callback: CallbackQuery, state: FSMContext):
             "keyboard": task_a3_kb_keyboard_json
         }
 
-        task_a3_kb_time_run = datetime.now(config["TIMEZONE"]) + Timings.CHECKLIST_KEYBOARD_DELAY
+        task_a3_kb_time_run = datetime.now(settings.timezone) + Timings.CHECKLIST_KEYBOARD_DELAY
 
         await create_task(user_id, task_a3_kb_type, task_a3_kb_payload, task_a3_kb_time_run, conn)
 
-    await state.set_state(DayAStates.a_2_video_sent)
+        await update_user_state(
+            user_id=user_id,
+            offer_code=OfferCodesEnum.SMART_WALLET,
+            last_activity_at=datetime.now(settings.tz),
+            state=DayAStates.A_2_VIDEO_LID_SENT,
+            connection=conn,
+        )
+

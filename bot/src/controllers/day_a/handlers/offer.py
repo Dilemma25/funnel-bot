@@ -2,21 +2,23 @@ from datetime import datetime
 import logging
 
 from aiogram import F
-from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from tortoise.transactions import in_transaction
 
 from src.controllers.day_a.file_codes import FileCodes
+from src.controllers.day_a.user_states import DayAStates
 from src.models.offer import OfferCodesEnum
 from src.controllers.day_a import messages
 from src.controllers.day_a.handlers import day_a_router
 from src.controllers.day_a.timings import Timings
 from src.core.config import config
+from src.core.config import settings
 from src.keyboards.day_a_keyboards import keyboard_A9_2_2
-from src.states.day_a import DayAStates
 from src.views.media import get_media_by_file_code
 from src.views.tasks import create_task
+from src.views.user_state.update_user_state import update_user_state
+from src.controllers.day_a import consts as consts
 
 
 logging.basicConfig(
@@ -25,7 +27,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-#TODO сделать парсинг цены из базы
+
 @day_a_router.callback_query(F.data == "day_a:a7:next")
 async def handle_a7_next(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
@@ -44,7 +46,7 @@ async def handle_a7_next(callback: CallbackQuery, state: FSMContext):
     try:
         async with in_transaction() as conn:
 
-            now = datetime.now(config["TIMEZONE"])
+            now = datetime.now(settings.timezone)
             offer_code = OfferCodesEnum.SMART_WALLET
 
             # ===== ТАСКА 1: Установка скидки + оффер =====
@@ -52,13 +54,12 @@ async def handle_a7_next(callback: CallbackQuery, state: FSMContext):
                 "user_id": user_id,
                 "text": messages.message_A9,
                 "keyboard": [
-                    [{"text": "Забрать за 2 490 ₽", "callback_data": "day_a:a9:buy"}],
+                    [{"text": f"Забрать за {consts.DAY_A_DISCOUNT_PRICE} ₽", "callback_data": "day_a:a9:buy"}],
                     [{"text": "Узнать подробнее", "callback_data": "day_a:a9:faq"}],
                 ],
                 # Параметры скидки
                 "offer_code": offer_code,
-                #TODO поменить прайсы скидок в отдельном файле с констами
-                "discount_price": 2490,
+                "discount_price": consts.DAY_A_DISCOUNT_PRICE,
                 "discount_duration": Timings.DISCOUNT_TIMER.total_seconds(),
             }
 
@@ -75,7 +76,7 @@ async def handle_a7_next(callback: CallbackQuery, state: FSMContext):
                 "user_id": user_id,
                 "text": messages.message_A9_1_1,
                 "keyboard": [
-                    [{"text": "💳 Оплатить 2 490 ₽", "callback_data": "day_a:a9:buy"}],
+                    [{"text": f"💳 Оплатить {consts.DAY_A_DISCOUNT_PRICE} ₽", "callback_data": "day_a:a9:buy"}],
                 ],
             }
 
@@ -105,8 +106,13 @@ async def handle_a7_next(callback: CallbackQuery, state: FSMContext):
                 connection=conn
             )
 
-        # Если транзакция успешна
-        await state.set_state(DayAStates.a_8_video_note_method_sent)
+            await update_user_state(
+                user_id=user_id,
+                offer_code=OfferCodesEnum.SMART_WALLET,
+                last_activity_at=datetime.now(settings.timezone),
+                state=DayAStates.A_7_SYSTEM_MESSAGE_SENT,
+                connection=conn
+            )
 
     except Exception as e:
         logger.error(f"❌ Ошибка создания тасок: {e}", exc_info=True)
@@ -114,8 +120,6 @@ async def handle_a7_next(callback: CallbackQuery, state: FSMContext):
 
 
 @day_a_router.callback_query(
-    # StateFilter(DayAStates.a_9_offer_sent),
-    StateFilter(DayAStates.a_8_video_note_method_sent),
     F.data == "day_a:a9:faq"
 )
 async def handle_faq(callback: CallbackQuery, state: FSMContext):
@@ -152,7 +156,7 @@ async def handle_faq(callback: CallbackQuery, state: FSMContext):
         user_id = callback.from_user.id
 
         keyboard_json = [
-            [{"text": "✅ Забрать за 2 490 ₽", "callback_data": "day_a:a9_2_1:buy"}],
+            [{"text": f"✅ Забрать за {consts.DAY_A_DISCOUNT_PRICE} ₽", "callback_data": "day_a:a9_2_1:buy"}],
             [{"text": "👁 Посмотреть отзывы", "callback_data": "day_a:a9_2_2:reviews"}],
         ]
 
@@ -163,14 +167,19 @@ async def handle_faq(callback: CallbackQuery, state: FSMContext):
         }
 
         task_type = "send_message"
-        time_run = datetime.now(config["TIMEZONE"]) + Timings.RETURN_TO_OFFER
+        time_run = datetime.now(settings.timezone) + Timings.RETURN_TO_OFFER
 
         await create_task(user_id, task_type, payload, time_run, conn)
 
-    await state.set_state(DayAStates.a_9_2_faq_sent)
+        await update_user_state(
+            user_id=user_id,
+            offer_code=OfferCodesEnum.SMART_WALLET,
+            last_activity_at=datetime.now(settings.timezone),
+            state=DayAStates.A_9_2_FAQ_SENT,
+            connection=conn
+        )
 
 @day_a_router.callback_query(
-    StateFilter(DayAStates.a_9_2_faq_sent),
     F.data == "day_a:a9_2_2:reviews"
 )
 async def handle_reviews(callback: CallbackQuery, state: FSMContext):
@@ -191,4 +200,11 @@ async def handle_reviews(callback: CallbackQuery, state: FSMContext):
             reply_markup=reply_markup,
         )
 
-    await state.set_state(DayAStates.day_a_reviews_sent)
+    user_id = callback.from_user.id
+
+    await update_user_state(
+        user_id=user_id,
+        offer_code=OfferCodesEnum.SMART_WALLET,
+        last_activity_at=datetime.now(settings.timezone),
+        state=DayAStates.DAY_A_9_2_2_REVIEWS_SENT,
+    )

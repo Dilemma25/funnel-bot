@@ -1,4 +1,3 @@
-# bot/src/core/logging_config.py
 import logging
 import sys
 from logging.handlers import TimedRotatingFileHandler

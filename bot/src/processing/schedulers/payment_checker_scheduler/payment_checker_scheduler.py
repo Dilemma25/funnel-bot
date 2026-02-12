@@ -1,5 +1,6 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from datetime import datetime, timedelta
+from datetime import timedelta
+from datetime import datetime
 import asyncio
 
 from src.models import UserOfferPayment
@@ -8,7 +9,7 @@ from src.services.payment import PaymentService
 from src.views.user_offer_payment import mark_payment
 from tortoise.transactions import in_transaction
 from src.core.logging_config import setup_logging
-from src.core.config import config
+from src.core.config import settings
 
 logger = setup_logging(__name__, service="payment_checker_scheduler")
 
@@ -38,7 +39,8 @@ class PaymentCheckerScheduler:
                     status = await PaymentService.check_payment_status(payment.yookassa_payment_id)
 
                     logger.info(
-                        f"📊 Payment {payment.id}: paid={status['paid']}, status={status['status']}")
+                        f"📊 Payment {payment.id}: paid={status['paid']}, status={status['status']}"
+                    )
 
                     async with in_transaction() as conn:
                         if status["paid"]:
@@ -52,7 +54,8 @@ class PaymentCheckerScheduler:
                         elif (
                                 status["status"] in ["canceled", "failed"]
                                 or (payment.created_at and #TODO время жизни платежа перенести в конфиг или другое место
-                                    (datetime.now(config["TIMEZONE"]) - payment.created_at).total_seconds() > 100)
+                                                           #TODO подумать насчет валидности самостоятельного закрытия платежа
+                                    (datetime.now(settings.timezone) - payment.created_at).total_seconds() > 100)
                         ):
                             await mark_payment(
                                 payment_id=payment.id,
