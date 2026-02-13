@@ -1,4 +1,3 @@
-#Dockerfile для Scheduler
 FROM python:3.12-slim
 
 WORKDIR /app
@@ -15,4 +14,4 @@ RUN mkdir -p /app/var/log
 
 ENV PYTHONPATH=/app
 
-CMD ["sh", "-c", "echo \"* * * * * cd /app && PYTHONPATH=/app /usr/local/bin/poetry run python src/processing/scheduler_runner.py >> /app/var/log/scheduler.log 2>&1\" | crontab - && cron -f"]
+CMD ["poetry", "run", "python", "src/processing/schedulers/payment_checker_scheduler/payment_checker_runner.py"]

@@ -1,8 +1,10 @@
 import os
 from datetime import timedelta
 
+from src.core.config import settings
+
 # Определяем режим работы
-IS_DEV = os.getenv('DEV_MODE', 'false').lower() == 'true'
+IS_DEV = settings.is_dev
 
 # Базовые таймеры для DEV режима
 DEV_DELAY = 30  # секунд
@@ -26,10 +28,10 @@ class DayATimings:
     # A8 → A9: Предложение курса
     A8_TO_A9 = timedelta(seconds=DEV_DELAY if IS_DEV else 30)
 
-    DISCOUNT_TIMER = timedelta(seconds=100 if IS_DEV else 30)
+    DISCOUNT_TIMER = timedelta(seconds=130 if IS_DEV else 30)
 
     #Если нажал на оплату, но не оплатил, напоминаем о таймере
-    I1_TO_A9_1_1 = timedelta(seconds=DEV_DELAY if IS_DEV else 30)
+    I1_TO_A9_1_1 = timedelta(seconds=70 if IS_DEV else 30)
 
     #Возврат к оферу после FAQ
     A9_2_TO_A9_2_1 = timedelta(seconds=DEV_DELAY if IS_DEV else 30)
@@ -54,18 +56,18 @@ class Timings:
     DISCOUNT_TIMER = DayATimings.DISCOUNT_TIMER
 
 
-def print_timings():
-    """Выводит все таймеры (для отладки)"""
-    mode = "DEV" if IS_DEV else "PRODUCTION"
-    print(f"\n=== Day A Timings ({mode}) ===")
-
-    for attr_name in dir(DayATimings):
-        if not attr_name.startswith('_'):
-            value = getattr(DayATimings, attr_name)
-            if isinstance(value, timedelta):
-                print(f"{attr_name}: {value.total_seconds():.0f}s")
-    print()
-
-
-if __name__ == "__main__":
-    print_timings()
+# def print_timings():
+#     """Выводит все таймеры (для отладки)"""
+#     mode = "DEV" if IS_DEV else "PRODUCTION"
+#     print(f"\n=== Day A Timings ({mode}) ===")
+#
+#     for attr_name in dir(DayATimings):
+#         if not attr_name.startswith('_'):
+#             value = getattr(DayATimings, attr_name)
+#             if isinstance(value, timedelta):
+#                 print(f"{attr_name}: {value.total_seconds():.0f}s")
+#     print()
+#
+#
+# if __name__ == "__main__":
+#     print_timings()

@@ -1,11 +1,11 @@
 from redis.asyncio import Redis
-from src.core.config import config
+from src.core.config import settings
 
 
 def init_redis():
     return Redis(
-        host=config['REDIS']['HOST'],
-        port=config['REDIS']['PORT'],
-        db=config['REDIS']['DB'],
+        host=settings.redis_host,
+        port=settings.redis_port,
+        db=settings.redis_db,
         decode_responses=True
     )

@@ -15,6 +15,7 @@ async def start(message: Message, state: FSMContext):
         [InlineKeyboardButton(text="➕ Добавить файл", callback_data="admin_add_file")],
         [InlineKeyboardButton(text="📋 Список файлов", callback_data="admin_list_files")],
         [InlineKeyboardButton(text="🗑️ Удалить файл", callback_data="admin_delete_file")],
+        [InlineKeyboardButton(text="🎁 Создать оффер", callback_data="admin_create_offer")],
     ]
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)

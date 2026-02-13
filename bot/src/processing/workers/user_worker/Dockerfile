@@ -14,4 +14,4 @@ RUN mkdir -p /app/var/log
 
 ENV PYTHONPATH=/app
 
-CMD ["sh", "-c", "poetry run arq src.processing.workers.user_worker.worker_settings.WorkerSettings >> /app/var/log/consumer.log 2>&1"]
+CMD ["poetry", "run", "arq", "src.processing.workers.user_worker.worker_settings.WorkerSettings"]

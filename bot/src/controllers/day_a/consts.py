@@ -24,3 +24,5 @@ QUIZ_ANSWERS = {
         "v4": 10000,
     },
 }
+
+DAY_A_DISCOUNT_PRICE = 2490

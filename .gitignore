@@ -5,6 +5,8 @@
 **/log/
 **/**.tar
 
+**/logs/
+
 cron.sh
 
 **/__pycache__/

@@ -3,7 +3,7 @@ from aiogram.exceptions import TelegramForbiddenError
 from src.views.user.deactivate_user import deactivate_user
 
 
-def safe_send(func):
+def safe(func):
     @wraps(func)
     async def wrapper(self, chat_id: int, *args, **kwargs):
         try:
@@ -11,5 +11,5 @@ def safe_send(func):
         except TelegramForbiddenError:
             await deactivate_user(chat_id)
         except Exception as e:
-            print(f"Error: {e}")
+            raise e
     return wrapper

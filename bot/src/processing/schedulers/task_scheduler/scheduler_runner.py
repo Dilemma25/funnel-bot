@@ -1,15 +1,12 @@
 import asyncio
-import logging
 
-from src.core.database import init_db, close_db
-from src.processing.scheduler import Scheduler
+from src.core.logging_config import setup_logging
+logger = setup_logging(__name__, service="task_scheduler")
 
+from src.core.database import close_db
+from src.core.database import init_db
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+from src.processing.schedulers.task_scheduler.scheduler import Scheduler
 
 
 async def main():
@@ -22,7 +19,7 @@ async def main():
 
         scheduler = Scheduler()
 
-        await scheduler.push_ready_tasks()
+        await scheduler.push_tasks()
 
     except Exception as e:
         logger.error(f"Ошибка в Scheduler: {e}", exc_info=True)
