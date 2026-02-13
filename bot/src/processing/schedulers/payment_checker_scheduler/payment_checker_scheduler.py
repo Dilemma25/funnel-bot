@@ -53,9 +53,9 @@ class PaymentCheckerScheduler:
 
                         elif (
                                 status["status"] in ["canceled", "failed"]
-                                or (payment.created_at and #TODO время жизни платежа перенести в конфиг или другое место
-                                                           #TODO подумать насчет валидности самостоятельного закрытия платежа
-                                    (datetime.now(settings.timezone) - payment.created_at).total_seconds() > 100)
+                                # or (payment.created_at and #TODO время жизни платежа перенести в конфиг или другое место
+                                #                            #TODO подумать насчет валидности самостоятельного закрытия платежа
+                                #     (datetime.now(settings.timezone) - payment.created_at).total_seconds() > 100)
                         ):
                             await mark_payment(
                                 payment_id=payment.id,

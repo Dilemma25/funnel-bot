@@ -6,6 +6,7 @@ from tortoise.transactions import in_transaction
 from src.keyboards import day_a_keyboards as day_a_keyboards
 from src.models.offer import OfferCodesEnum
 from src.controllers.day_a.consts import QUIZ_ANSWERS
+from src.processing.task_types import TaskTypeEnum
 from src.views.media import get_media_by_file_code
 from src.views.tasks import create_task
 from src.controllers.day_a import messages as messages
@@ -19,6 +20,11 @@ from ..file_codes import FileCodes
 from src.core.config import settings
 from ..user_states import DayAStates
 
+from src.controllers.schemas.task_payloads import VideoNoteTaskPayload
+from src.controllers.schemas.task_payloads import MessageTaskPayload
+
+from src.controllers.schemas.keyboard import keyboard
+from src.controllers.schemas.keyboard import button
 
 @day_a_router.callback_query(
     F.data.startswith("day_a:a3:found")
@@ -50,7 +56,7 @@ async def handle_found_problems(callback: CallbackQuery, state: FSMContext):
     await update_user_state(
         user_id=user_id,
         offer_code=OfferCodesEnum.SMART_WALLET,
-        last_activity_at=datetime.now(settings.tz),
+        last_activity_at=datetime.now(settings.timezone),
         state=DayAStates.A_4_QUIZ_Q1,
     )
 
@@ -85,7 +91,7 @@ async def handle_not_found_problems(callback: CallbackQuery, state: FSMContext):
     await update_user_state(
         user_id=user_id,
         offer_code=OfferCodesEnum.SMART_WALLET,
-        last_activity_at=datetime.now(settings.tz),
+        last_activity_at=datetime.now(settings.timezone),
         state=DayAStates.A_4_QUIZ_Q2,
     )
 
@@ -117,7 +123,7 @@ async def handle_quiz_1(callback: CallbackQuery, state: FSMContext):
     await update_user_state(
         user_id=user_id,
         offer_code=OfferCodesEnum.SMART_WALLET,
-        last_activity_at=datetime.now(settings.tz),
+        last_activity_at=datetime.now(settings.timezone),
         state=DayAStates.A_4_QUIZ_Q2
     )
 
@@ -148,7 +154,7 @@ async def handle_quiz_2(callback: CallbackQuery, state: FSMContext):
     await update_user_state(
         user_id=user_id,
         offer_code=OfferCodesEnum.SMART_WALLET,
-        last_activity_at=datetime.now(settings.tz),
+        last_activity_at=datetime.now(settings.timezone),
         state=DayAStates.A_4_QUIZ_Q3
     )
 
@@ -179,7 +185,7 @@ async def handle_quiz_3(callback: CallbackQuery, state: FSMContext):
     await update_user_state(
         user_id=user_id,
         offer_code=OfferCodesEnum.SMART_WALLET,
-        last_activity_at=datetime.now(settings.tz),
+        last_activity_at=datetime.now(settings.timezone),
         state=DayAStates.A_4_QUIZ_Q4
     )
 
@@ -211,28 +217,46 @@ async def handle_quiz_4(callback: CallbackQuery, state: FSMContext):
         user_id = callback.from_user.id
         file_id = await get_media_by_file_code(FileCodes.VIDEO_NOTE_JADNOST, OfferCodesEnum.SMART_WALLET)
 
-        payload = {
-            "user_id": user_id,
-            "file_id": file_id
-        }
+        task_type = TaskTypeEnum.SEND_VIDEO_NOTE
 
-        task_type = "send_video_note"
+        payload = VideoNoteTaskPayload(
+            user_id=user_id,
+            file_id=file_id,
+        )
+
         time_run = datetime.now(settings.timezone) + Timings.VIDEO_NOTE_DELAY
+        # payload = {
+        #     "user_id": user_id,
+        #     "file_id": file_id
+        # }
+        #
+        # task_type = "send_video_note"
+        # time_run = datetime.now(settings.timezone) + Timings.VIDEO_NOTE_DELAY
 
         await create_task(user_id, task_type, payload, time_run, conn)
 
         #Таска на переход после кружка
-        keyboard_json = [
-            [{"text": "Понятно, что дальше?", "callback_data": "day_a:a7:next"}],
-        ]
+        # keyboard_json = [
+        #     [{"text": "Понятно, что дальше?", "callback_data": "day_a:a7:next"}],
+        # ]
+        #
+        # payload = {
+        #     "user_id": user_id,
+        #     "text": messages.message_A7,
+        #     "keyboard" : keyboard_json
+        # }
+        #
+        # task_type = "send_message"
 
-        payload = {
-            "user_id": user_id,
-            "text": messages.message_A7,
-            "keyboard" : keyboard_json
-        }
+        task_type = TaskTypeEnum.SEND_MESSAGE
 
-        task_type = "send_message"
+        payload = MessageTaskPayload(
+            user_id=user_id,
+            text=messages.message_A7,
+            keyboard=keyboard(
+                [button(text="Понятно, что дальше?", callback_data="day_a:a7:next")]
+            )
+        )
         time_run = datetime.now(settings.timezone) + Timings.SYSTEM_MESSAGE_DELAY
 
         await create_task(user_id, task_type, payload, time_run, conn)
@@ -240,7 +264,7 @@ async def handle_quiz_4(callback: CallbackQuery, state: FSMContext):
         await update_user_state(
             user_id=user_id,
             offer_code=OfferCodesEnum.SMART_WALLET,
-            last_activity_at=datetime.now(settings.tz),
+            last_activity_at=datetime.now(settings.timezone),
             state=DayAStates.A_5_QUIZ_RESULT_SENT,
             connection=conn,
         )

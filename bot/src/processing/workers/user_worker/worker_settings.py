@@ -1,13 +1,17 @@
 import asyncio
 
+from src.core.logging_config import setup_logging
+logger = setup_logging(__name__, service="user_worker")
+
 from aiogram.exceptions import TelegramBadRequest
 from arq.connections import RedisSettings
 from arq import Retry
 from tortoise.transactions import in_transaction
 
 from src.core.config import settings
-from src.core.logging_config import setup_logging
+
 from src.models import ScheduledTask
+from src.models.sent_message import SentMessageTagEnum
 from src.processing.tasks.preparable import PreparableTask
 from src.safe_bot import SafeBot
 from src.core.database import init_db
@@ -15,7 +19,8 @@ from src.core.redis import init_redis
 from src.processing.task_factory import TaskFactory
 from src.views.sent_message import mark_message_as_deleted
 
-logger = setup_logging(__name__, service="user_worker")
+
+
 
 
 async def startup(ctx):
@@ -118,7 +123,7 @@ async def delete_message(
 
     bot = None
 
-    if message_tag != 'course':
+    if message_tag == SentMessageTagEnum.FUNNEL:
         bot = ctx["bot"]
 
     try:
@@ -148,7 +153,7 @@ class WorkerSettings:
         host=settings.redis_host,
         port=settings.redis_port,
         database=settings.redis_db
-    ),
+    )
 
 
     functions = [send_scheduled_message]

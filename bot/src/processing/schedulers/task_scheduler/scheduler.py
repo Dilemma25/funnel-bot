@@ -1,17 +1,19 @@
+from src.core.logging_config import setup_logging
+logger = setup_logging(__name__, service="task_scheduler")
+
 from arq import create_pool
 from arq.connections import RedisSettings
 from redis.asyncio.lock import Lock
 from tortoise.transactions import in_transaction
 
 from src.core.config import settings
-from src.core.logging_config import setup_logging
 from src.views.sent_message.get_expires_messages import get_expires_messages
 from src.views.tasks import get_no_processed_tasks
 from src.core.redis import init_redis
 
 from datetime import datetime
 
-logger = setup_logging(__name__, service="task_scheduler")
+
 
 
 class Scheduler:
@@ -77,7 +79,7 @@ class Scheduler:
         try:
             async with Lock(
                     redis_client,
-                    name=settings.SHEDULER_LOCK_KEY,
+                    name=settings.scheduler_lock_key,
                     timeout=70,
                     blocking_timeout=1,
             ) as lock:

@@ -3,6 +3,7 @@ from src.models import UserOffer
 from datetime import datetime, timedelta
 import logging
 
+from src.models.offer import OfferCodesEnum
 from src.models.payment import PaymentStatusEnum
 from src.views.user_offer_payment import get_payment_with_status
 
@@ -41,7 +42,12 @@ async def set_discount(
     if not user_offer:
         raise ValueError(f"UserOffer не найден для user_id={user_id}, offer_code={offer_code}")
 
-    successful_payment = await get_payment_with_status(user_offer.id, connection, PaymentStatusEnum.SUCCESSFUL)
+    successful_payment = await get_payment_with_status(
+        user_id=user_id,
+        offer_code=OfferCodesEnum.SMART_WALLET,
+        payment_status=PaymentStatusEnum.SUCCESSFUL,
+        connection=connection
+        )
 
     if successful_payment:
         return None

@@ -1,11 +1,10 @@
-from src.core.config import config, settings
+from src.core.logging_config import setup_logging
+
+logger = setup_logging(__name__, service="user_worker")
+
+from src.core.config import settings
 from src.models import UserOffer
 from datetime import datetime
-import logging
-from datetime import timezone
-
-
-logger = logging.getLogger(__name__)
 
 
 async def remove_discount(

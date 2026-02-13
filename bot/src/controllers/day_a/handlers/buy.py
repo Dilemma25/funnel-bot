@@ -30,6 +30,7 @@ async def handle_buy(callback: CallbackQuery, state: FSMContext):
     # Получаем актуальную цену
     current_price = await get_current_price(user_id, OfferCodesEnum.SMART_WALLET)
 
+    #TODO Сделать что бы бот выл впринципе не активен на команды после оплаты, тк он должен перейти уже к курсу
     existing_successful_payment = await get_payment_with_status(
         user_id=user_id,
         offer_code=OfferCodesEnum.SMART_WALLET,
@@ -43,11 +44,9 @@ async def handle_buy(callback: CallbackQuery, state: FSMContext):
     pending_payment = await get_payment_with_status(
         user_id=user_id,
         offer_code=OfferCodesEnum.SMART_WALLET,
-        payment_status=PaymentStatusEnum.PENDING
+        payment_status=PaymentStatusEnum.PENDING,
+        order_by="newest",
     )
-
-    payment_id = pending_payment.id
-    payment_url = pending_payment.yookassa_payment_url
 
     if not pending_payment or pending_payment.amount != current_price:
         # Создаем платеж в ЮKassa
@@ -68,9 +67,12 @@ async def handle_buy(callback: CallbackQuery, state: FSMContext):
             amount=current_price,
         )
 
+    else:
+        payment_id = pending_payment.id
+        payment_url = pending_payment.yookassa_payment_url
+
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="💳 Оплатить", url=payment_url)],
-        # [InlineKeyboardButton(text="✅ Я оплатил", callback_data=f"check:")],
     ])
 
     await callback.message.answer(
@@ -85,37 +87,3 @@ async def handle_buy(callback: CallbackQuery, state: FSMContext):
         state=DayAStates.DAY_A_10_PAYMENT_PROCESS,
         last_activity_at=datetime.now(settings.timezone),
     )
-
-
-# #TODO Тестовый хендлер, убрать
-# @day_a_router.callback_query(F.data.startswith("check:"))
-# async def check_payment_status_handler(callback: CallbackQuery):
-#     payment_id = callback.data.split(":")[1]
-#
-#     # Проверяем статус
-#     payment_status = await PaymentService.check_payment_status(payment_id)
-#
-#     if not payment_status["paid"]:
-#
-#         await callback.answer(
-#             "⏳ Оплата еще не поступила.\n"
-#             "Попробуй через минуту.",
-#             show_alert=True
-#         )
-#
-#         return
-#
-#     async with in_transaction() as conn:
-#
-#         await mark_payment(
-#             payment_id=payment_id,
-#             new_status=PaymentStatusEnum.SUCCESSFUL,
-#             connection=conn,
-#         )
-#
-#     await callback.answer("✅ Оплата подтверждена!", show_alert=True)
-#
-#     await callback.message.answer(
-#         "🎉 Добро пожаловать на курс!\n\n"
-#         "Доступ открыт."
-#     )
