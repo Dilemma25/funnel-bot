@@ -1,6 +1,7 @@
 from src.processing.tasks.messaging.base_messaging import BaseMessagingTask
 from src.processing.tasks.preparable import PreparableTask
 from src.views.user_offer import set_discount
+from aiogram.types import Message
 
 
 class SetDiscountAndSendMessageTask(BaseMessagingTask, PreparableTask):
@@ -28,13 +29,15 @@ class SetDiscountAndSendMessageTask(BaseMessagingTask, PreparableTask):
         )
 
 
-    async def execute(self):
+    async def execute(self) -> Message:
 
         keyboard = self._build_keyboard()
 
-        await self.bot.send_message(
+        message = await self.bot.send_message(
             chat_id=self.payload["user_id"],
             text=self.payload["text"],
             reply_markup=keyboard,
             parse_mode="Markdown",
         )
+
+        return message

@@ -6,8 +6,10 @@ from tortoise.transactions import in_transaction
 from src.keyboards import day_a_keyboards as day_a_keyboards
 from src.models.offer import OfferCodesEnum
 from src.controllers.day_a.consts import QUIZ_ANSWERS
+from src.models.sent_message import SentMessageDeleteTimings, SentMessageTagEnum
 from src.processing.task_types import TaskTypeEnum
 from src.views.media import get_media_by_file_code
+from src.views.sent_message import track_message
 from src.views.tasks import create_task
 from src.controllers.day_a import messages as messages
 from src.views.user_state.update_user_state import update_user_state
@@ -18,13 +20,14 @@ from datetime import datetime
 from src.controllers.day_a.timings import Timings
 from ..file_codes import FileCodes
 from src.core.config import settings
-from ..user_states import DayAStates
+from src.controllers.user_states import DayAStates
 
 from src.controllers.schemas.task_payloads import VideoNoteTaskPayload
 from src.controllers.schemas.task_payloads import MessageTaskPayload
 
 from src.controllers.schemas.keyboard import keyboard
 from src.controllers.schemas.keyboard import button
+
 
 @day_a_router.callback_query(
     F.data.startswith("day_a:a3:found")
@@ -34,10 +37,21 @@ async def handle_found_problems(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.delete()
 
-    await callback.message.answer(
+    user_id = callback.from_user.id
+
+    message = await callback.message.answer(
         text=messages.message_C1,
         parse_mode="Markdown",
         protect_content=True,
+    )
+
+    await track_message(
+        user_id=user_id,
+        telegram_message_id=message.message_id,
+        tag=SentMessageTagEnum.FUNNEL,
+        stage=DayAStates.C1_FOUND_SENT,
+        delete_at=datetime.now(settings.timezone) + SentMessageDeleteTimings.get_long(),
+        delete_on_stage=DayAStates.FINAL
     )
 
     await callback.message.answer(
@@ -50,8 +64,6 @@ async def handle_found_problems(callback: CallbackQuery, state: FSMContext):
     await state.update_data(
         quiz_sum=0,
     )
-
-    user_id = callback.from_user.id
 
     await update_user_state(
         user_id=user_id,
@@ -69,10 +81,21 @@ async def handle_not_found_problems(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.delete()
 
-    await callback.message.answer(
+    user_id = callback.from_user.id
+
+    message = await callback.message.answer(
         text=messages.message_C2,
         parse_mode="Markdown",
         protect_content=True,
+    )
+
+    await track_message(
+        user_id=user_id,
+        telegram_message_id=message.message_id,
+        tag=SentMessageTagEnum.FUNNEL,
+        stage=DayAStates.C2_NOT_FOUND_SENT,
+        delete_at=datetime.now(settings.timezone) + SentMessageDeleteTimings.get_long(),
+        delete_on_stage=DayAStates.FINAL
     )
 
     await callback.message.answer(
@@ -86,7 +109,6 @@ async def handle_not_found_problems(callback: CallbackQuery, state: FSMContext):
         quiz_sum=0,
     )
 
-    user_id = callback.from_user.id
 
     await update_user_state(
         user_id=user_id,
@@ -222,31 +244,16 @@ async def handle_quiz_4(callback: CallbackQuery, state: FSMContext):
         payload = VideoNoteTaskPayload(
             user_id=user_id,
             file_id=file_id,
+
+            message_tag=SentMessageTagEnum.FUNNEL,
+            message_stage=DayAStates.A_6_VIDEO_NOTE_JADNOST_SENT,
+            delete_at=datetime.now(settings.timezone) + SentMessageDeleteTimings.get_default(),
+            delete_on_stage=DayAStates.FINAL
         )
 
         time_run = datetime.now(settings.timezone) + Timings.VIDEO_NOTE_DELAY
-        # payload = {
-        #     "user_id": user_id,
-        #     "file_id": file_id
-        # }
-        #
-        # task_type = "send_video_note"
-        # time_run = datetime.now(settings.timezone) + Timings.VIDEO_NOTE_DELAY
 
-        await create_task(user_id, task_type, payload, time_run, conn)
-
-        #Таска на переход после кружка
-        # keyboard_json = [
-        #     [{"text": "Понятно, что дальше?", "callback_data": "day_a:a7:next"}],
-        # ]
-        #
-        # payload = {
-        #     "user_id": user_id,
-        #     "text": messages.message_A7,
-        #     "keyboard" : keyboard_json
-        # }
-        #
-        # task_type = "send_message"
+        await create_task(user_id, task_type, payload.model_dump_json(), time_run, conn)
 
         task_type = TaskTypeEnum.SEND_MESSAGE
 
@@ -255,11 +262,15 @@ async def handle_quiz_4(callback: CallbackQuery, state: FSMContext):
             text=messages.message_A7,
             keyboard=keyboard(
                 [button(text="Понятно, что дальше?", callback_data="day_a:a7:next")]
-            )
+            ),
+            message_tag=SentMessageTagEnum.FUNNEL,
+            message_stage=DayAStates.A_7_SYSTEM_MESSAGE_SENT,
+            delete_at=datetime.now(settings.timezone) + SentMessageDeleteTimings.get_default(),
+            delete_on_stage=DayAStates.FINAL
         )
         time_run = datetime.now(settings.timezone) + Timings.SYSTEM_MESSAGE_DELAY
 
-        await create_task(user_id, task_type, payload, time_run, conn)
+        await create_task(user_id, task_type, payload.model_dump_json(), time_run, conn)
 
         await update_user_state(
             user_id=user_id,

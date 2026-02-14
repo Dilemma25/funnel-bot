@@ -1,11 +1,15 @@
+from datetime import datetime
+
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram import F
 from aiogram.types import InlineKeyboardButton
 from aiogram.types import InlineKeyboardMarkup
-from aiogram.filters import Command
+from tortoise.transactions import in_transaction
 
 from src.models.payment import PaymentStatusEnum
+from src.models.sent_message import SentMessageTagEnum, SentMessageDeleteTimings
+from src.views.sent_message import track_message
 from src.views.user_offer_payment import create_user_offer_payment
 from src.views.user_state.update_user_state import update_user_state
 from . import day_a_router
@@ -13,15 +17,11 @@ from src.services.payment import PaymentService
 from src.views.user_offer import get_current_price
 from src.models.offer import OfferCodesEnum
 from src.views.user_offer_payment import get_payment_with_status
+from src.controllers.user_states import DayAStates, DayBStates
 from src.core.config import settings
-
-from datetime import datetime
-
-from ..user_states import DayAStates
 
 
 @day_a_router.callback_query(F.data.contains(":buy"))
-@day_a_router.message(Command("buy"))
 async def handle_buy(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
@@ -75,15 +75,28 @@ async def handle_buy(callback: CallbackQuery, state: FSMContext):
         [InlineKeyboardButton(text="💳 Оплатить", url=payment_url)],
     ])
 
-    await callback.message.answer(
+    message = await callback.message.answer(
         text=f"💰 К оплате: {current_price} ₽\n\n"
              f"Нажми кнопку ниже для перехода к оплате.\n",
         reply_markup=keyboard
     )
 
-    await update_user_state(
-        user_id=user_id,
-        offer_code=OfferCodesEnum.SMART_WALLET,
-        state=DayAStates.DAY_A_10_PAYMENT_PROCESS,
-        last_activity_at=datetime.now(settings.timezone),
-    )
+    async with in_transaction() as conn:
+        await track_message(
+            user_id=user_id,
+            tag=SentMessageTagEnum.FUNNEL,
+            telegram_message_id=message.message_id,
+            stage=DayAStates.PAYMENT_PROCESS,
+
+            delete_at=datetime.now(settings.timezone) + SentMessageDeleteTimings.get_short(),
+            delete_on_stage=DayBStates.B_1_COLD_SHOWER,
+            connection=conn
+        )
+
+        await update_user_state(
+            user_id=user_id,
+            offer_code=OfferCodesEnum.SMART_WALLET,
+            state=DayAStates.PAYMENT_PROCESS,
+            last_activity_at=datetime.now(settings.timezone),
+            connection=conn
+        )

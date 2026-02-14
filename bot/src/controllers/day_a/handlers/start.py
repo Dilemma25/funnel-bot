@@ -6,7 +6,10 @@ from aiogram.types import CallbackQuery
 from tortoise.transactions import in_transaction
 
 from src.keyboards.day_a_keyboards import keyboard_A1
+from src.models.sent_message import SentMessageTagEnum
+from src.models.sent_message import SentMessageDeleteTimings
 from src.processing.task_types import TaskTypeEnum
+from src.views.sent_message import track_message
 from src.views.user import get_or_create_user
 from src.views.media import get_media_by_file_code
 from src.views.user_offer import get_user_offer
@@ -19,17 +22,16 @@ from src.views.user_state.create_user_state import create_user_state
 from src.views.user_state.update_user_state import update_user_state
 from . import day_a_router
 from src.controllers.day_a.timings import Timings
-
-from datetime import datetime
-
 from src.controllers.day_a.file_codes import FileCodes
-from src.controllers.day_a.user_states import DayAStates
+from src.controllers.user_states import DayAStates, DayBStates
 
 from src.controllers.schemas.task_payloads import DocumentTaskPayload
 from src.controllers.schemas.task_payloads import MessageTaskPayload
 
 from src.controllers.schemas.keyboard import button
 from src.controllers.schemas.keyboard import keyboard
+
+from datetime import datetime
 
 
 @day_a_router.message(CommandStart())
@@ -75,21 +77,31 @@ async def start_day_a(message: Message, state: FSMContext):
         offer_code=OfferCodesEnum.SMART_WALLET,
     )
 
-    await message.answer(
+    message = await message.answer(
         messages.message_A1,
         parse_mode="Markdown",
         reply_markup=keyboard_A1,
         protect_content=True,
     )
 
-    user_id = message.from_user.id
+    async with in_transaction() as conn:
 
-    await update_user_state(
-        user_id=user_id,
-        offer_code=OfferCodesEnum.SMART_WALLET,
-        last_activity_at=datetime.now(settings.timezone),
-        state=DayAStates.A_1_STARTED
-    )
+        await track_message(
+            user_id=user_id,
+            telegram_message_id=message.message_id,
+            tag=SentMessageTagEnum.FUNNEL,
+            delete_on_stage=DayBStates.B_1_COLD_SHOWER,
+            delete_at=datetime.now(settings.timezone) + SentMessageDeleteTimings.get_long(),
+            connection=conn
+        )
+
+        await update_user_state(
+            user_id=user_id,
+            offer_code=OfferCodesEnum.SMART_WALLET,
+            last_activity_at=datetime.now(settings.timezone),
+            state=DayAStates.A_1_STARTED,
+            connection=conn
+        )
 
 
 @day_a_router.callback_query(F.data == "day_a:a1:start")
@@ -105,7 +117,7 @@ async def send_video_lid(callback: CallbackQuery, state: FSMContext):
         offer_code=OfferCodesEnum.SMART_WALLET,
     )
 
-    await callback.message.answer_video(
+    message = await callback.message.answer_video(
         video=file_id,
         caption=messages.message_A2,
         protect_content=True,
@@ -113,6 +125,14 @@ async def send_video_lid(callback: CallbackQuery, state: FSMContext):
     )
 
     async with in_transaction() as conn:
+        await track_message(
+            user_id=user_id,
+            telegram_message_id=message.message_id,
+            tag=SentMessageTagEnum.FUNNEL,
+            delete_on_stage=DayBStates.B_1_COLD_SHOWER,
+            delete_at=datetime.now(settings.timezone) + SentMessageDeleteTimings.get_long(),
+            connection=conn,
+        )
         #Таска A3
 
         task_a3_file_id = await get_media_by_file_code(FileCodes.CHECK_LIST, OfferCodesEnum.SMART_WALLET)
@@ -122,6 +142,10 @@ async def send_video_lid(callback: CallbackQuery, state: FSMContext):
             user_id=user_id,
             text=messages.message_A3,
             file_id=task_a3_file_id,
+            message_stage=DayAStates.A_3_CHECKLIST_SENT,
+            message_tag=SentMessageTagEnum.FUNNEL,
+            delete_at=datetime.now(settings.timezone) + SentMessageDeleteTimings.get_short(),
+            delete_on_stage=DayAStates.A_5_QUIZ_RESULT_SENT
         )
 
         task_a3_time_run = datetime.now(settings.timezone) + Timings.CHECKLIST_DELAY
@@ -143,6 +167,10 @@ async def send_video_lid(callback: CallbackQuery, state: FSMContext):
                     button(text="Пока не вижу явных проблем", callback_data="day_a:a3:not_found")
                 ]
             ),
+            message_stage=DayAStates.A_3_CHECKLIST_SENT,
+            message_tag=SentMessageTagEnum.FUNNEL,
+            delete_on_stage=DayBStates.B_1_COLD_SHOWER,
+            delete_at=datetime.now(settings.timezone) + SentMessageDeleteTimings.get_long(),
         )
 
         task_a3_kb_time_run = datetime.now(settings.timezone) + Timings.CHECKLIST_KEYBOARD_DELAY
