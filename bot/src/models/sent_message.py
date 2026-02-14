@@ -1,3 +1,6 @@
+from datetime import timedelta
+from src.core.config import settings
+
 from tortoise import fields
 from tortoise.models import Model
 
@@ -7,9 +10,28 @@ class SentMessageTagEnum:
     COURSE = "course"
 
 
+class SentMessageDeleteTimings:
+    """Таймеры для удаления сообщений"""
+
+    @staticmethod
+    def get_default() -> timedelta:
+        """12 часов (prod) / 4 минуты (dev)"""
+        return timedelta(minutes=4) if settings.is_dev else timedelta(hours=12)
+
+    @staticmethod
+    def get_short() -> timedelta:
+        """6 часов (prod) / 4 минуты (dev)"""
+        return timedelta(minutes=4) if settings.is_dev else timedelta(hours=6)
+
+    @staticmethod
+    def get_long() -> timedelta:
+        """24 часа (prod) / 4 минуты (dev)"""
+        return timedelta(minutes=4) if settings.is_dev else timedelta(hours=24)
+
+
 class SentMessage(Model):
     id = fields.IntField(pk=True)
-    user_id = fields.ForeignKeyField(
+    user = fields.ForeignKeyField(
         model_name="models.User",
         related_name="sent_messages",
         on_delete=fields.CASCADE

@@ -5,6 +5,8 @@ from src.views.user_offer import remove_discount
 from src.views.user_offer_payment import get_payment_with_status
 from src.views.user_offer import get_user_offer
 
+from aiogram.types import Message
+
 
 class RemoveDiscountAndSendMessageTask(BaseMessagingTask, PreparableTask):
 
@@ -29,13 +31,15 @@ class RemoveDiscountAndSendMessageTask(BaseMessagingTask, PreparableTask):
         )
         return True
 
-    async def execute(self):
+    async def execute(self) -> Message:
         keyboard = self._build_keyboard()
 
-        await self.bot.send_message(
+        message = await self.bot.send_message(
             chat_id=self.payload["user_id"],
             text=self.payload["text"],
             reply_markup=keyboard,
             parse_mode="Markdown",
             protect_content=True,
         )
+
+        return message

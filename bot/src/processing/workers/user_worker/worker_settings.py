@@ -17,10 +17,7 @@ from src.safe_bot import SafeBot
 from src.core.database import init_db
 from src.core.redis import init_redis
 from src.processing.task_factory import TaskFactory
-from src.views.sent_message import mark_message_as_deleted
-
-
-
+from src.views.sent_message import mark_message_as_deleted, track_message
 
 
 async def startup(ctx):
@@ -92,7 +89,17 @@ async def send_scheduled_message(ctx, task_id, task_type, payload):
                 task.processed = True
                 await task.save(using_db=conn)
 
-        await handler.execute()
+        message = await handler.execute()
+
+        #TODO перепелить эту хуйню ебанную
+        await track_message(
+            user_id=payload["user_id"],
+            telegram_message_id=message.message_id,
+            tag=payload["tag"],
+            stage=payload["stage"],
+            delete_at=payload["delete_at"],
+            delete_on_stage=payload["delete_on_stage"],
+        )
 
         logger.info(f"Task {task_id} completed and saved to DB")
 
@@ -156,7 +163,7 @@ class WorkerSettings:
     )
 
 
-    functions = [send_scheduled_message]
+    functions = [send_scheduled_message, delete_message]
 
     max_jobs = 1
 

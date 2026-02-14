@@ -39,6 +39,35 @@ services:
       - /etc/localtime:/etc/localtime:ro
     restart: unless-stopped
 
+  funnel-bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile  # Создай Dockerfile в ./bot/
+    container_name: funnel-bot
+    env_file: .env
+    network_mode: host
+    volumes:
+      - ./bot:/app
+      - ./logs:/app/logs
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+
+  funnel-webhook:
+    build:
+      context: ./bot
+      dockerfile: ./src/webhook_server/Dockerfile
+    container_name: funnel-webhook
+    env_file: .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./bot:/app
+      - ./logs:/app/logs
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+
 
 volumes:
   scheduler_logs:

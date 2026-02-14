@@ -1,7 +1,9 @@
 from pydantic import BaseModel
 from pydantic import Field
 from pydantic import field_validator
-from typing import Optional, List
+from typing import Optional
+from typing import List
+from datetime import datetime
 
 
 class KeyboardButton(BaseModel):
@@ -23,6 +25,26 @@ class KeyboardButton(BaseModel):
 class BaseTaskPayload(BaseModel):
     """Базовая схема payload для всех тасок"""
     user_id: int = Field(..., description="ID пользователя Telegram")
+    # ===== Трекинг сообщений для удаления =====
+    message_tag: str = Field(
+        ...,
+        description="Тег сообщения для группировки (funnel, course, etc)"
+    )
+
+    message_stage: str = Field(
+        ...,
+        description="На каком этапе отправлено сообщение"
+    )
+
+    delete_at: datetime = Field(
+        ...,
+        description="Точное время удаления сообщения (datetime)"
+    )
+
+    delete_on_stage: str = Field(
+        ...,
+        description="Удалить сообщение при переходе на указанный stage"
+    )
 
     class Config:
         # Разрешить дополнительные поля (для гибкости)

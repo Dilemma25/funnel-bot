@@ -58,7 +58,7 @@ class Scheduler:
             job = await self.arq_pool.enqueue_job(
                 'delete_message',  # ← Функция 2
                 message_id=message.id,
-                telegram_message_id=message.message_id,
+                telegram_message_id=message.telegram_message_id,
                 chat_id=message.user_id,
                 message_tag=message.tag,
                 _job_id=f"delete_msg_{message.id}",
