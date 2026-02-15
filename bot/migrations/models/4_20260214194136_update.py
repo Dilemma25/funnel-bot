@@ -7,14 +7,11 @@ async def upgrade(db: BaseDBAsyncClient) -> str:
     return """
         ALTER TABLE "sent_messages" DROP CONSTRAINT IF EXISTS "fk_sent_mes_users_60bef6b6";
         ALTER TABLE "sent_messages" RENAME COLUMN "user_id_id" TO "user_id";
-        ALTER TABLE "user_states" ALTER COLUMN "last_activity_at" SET DEFAULT '2026-02-14 09:41:32.581961+00:00';
         ALTER TABLE "sent_messages" ADD CONSTRAINT "fk_sent_mes_users_a742b69d" FOREIGN KEY ("user_id") REFERENCES "users" ("telegram_id") ON DELETE CASCADE;"""
-
 
 async def downgrade(db: BaseDBAsyncClient) -> str:
     return """
         ALTER TABLE "sent_messages" DROP CONSTRAINT IF EXISTS "fk_sent_mes_users_a742b69d";
-        ALTER TABLE "user_states" ALTER COLUMN "last_activity_at" SET DEFAULT '2026-02-13 03:59:19.347161+00:00';
         ALTER TABLE "sent_messages" RENAME COLUMN "user_id" TO "user_id_id";
         ALTER TABLE "sent_messages" ADD CONSTRAINT "fk_sent_mes_users_60bef6b6" FOREIGN KEY ("user_id_id") REFERENCES "users" ("telegram_id") ON DELETE CASCADE;"""
 

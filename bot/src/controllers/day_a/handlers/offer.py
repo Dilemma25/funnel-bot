@@ -1,5 +1,7 @@
 from src.core.logging_config import setup_logging
+from src.models.user_log import EventTypeEnum
 from src.views.sent_message import track_message
+from src.views.user_log import create_user_log
 
 logger = setup_logging(__name__, service='bot')
 
@@ -211,6 +213,18 @@ async def handle_faq(callback: CallbackQuery, state: FSMContext):
 
     async with in_transaction() as conn:
 
+        payload = {
+            "clicked_button": "a9: Узнать подробнее(A9.1)"
+        }
+
+        await create_user_log(
+            user_id=user_id,
+            event_type=EventTypeEnum.BUTTON_CLICKED,
+            user_stage=DayAStates.A_9_OFFER_SENT,
+            payload=payload,
+            connection=conn
+        )
+
         for message_id in sent_message_ids:
             await track_message(
                 user_id=user_id,
@@ -289,6 +303,18 @@ async def handle_reviews(callback: CallbackQuery, state: FSMContext):
         messages_ids.append(message.message_id)
 
     async with in_transaction() as conn:
+
+        payload = {
+            "clicked_button": "a9_2_2: Отзывы(A9.2.2)"
+        }
+
+        await create_user_log(
+            user_id=user_id,
+            event_type=EventTypeEnum.BUTTON_CLICKED,
+            user_stage=DayAStates.A_9_2_FAQ_SENT,
+            payload=payload,
+            connection=conn
+        )
 
         for message_id in messages_ids:
 

@@ -5,6 +5,7 @@ from src.core.config import settings
 from src.core.logging_config import setup_logging
 import uuid
 
+
 logger = setup_logging(__name__, service="bot.payments")
 
 Configuration.account_id = settings.shop_id
@@ -33,7 +34,7 @@ class PaymentService:
             "metadata": {
                 "user_id": user_id,
                 "source": "telegram_bot"
-            }
+            },
         }, idempotence_key)
 
         return {

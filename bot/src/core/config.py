@@ -6,6 +6,7 @@ from pydantic_settings import SettingsConfigDict
 from pydantic import Field
 from enum import Enum
 
+
 load_dotenv()
 
 class Environment(str, Enum):

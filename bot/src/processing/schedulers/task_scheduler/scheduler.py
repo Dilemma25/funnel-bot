@@ -1,4 +1,10 @@
+import asyncio
+
+from redis.exceptions import LockError
+
 from src.core.logging_config import setup_logging
+from src.views.user_state.get_inactive_users import get_inactive_users
+
 logger = setup_logging(__name__, service="task_scheduler")
 
 from arq import create_pool
@@ -11,9 +17,7 @@ from src.views.sent_message.get_expires_messages import get_expires_messages
 from src.views.tasks import get_no_processed_tasks
 from src.core.redis import init_redis
 
-from datetime import datetime
-
-
+from datetime import datetime, timezone
 
 
 class Scheduler:
@@ -72,11 +76,41 @@ class Scheduler:
 
         logger.info(f"Successfully enqueued {len(messages)} messages on delete")
 
+    async def _get_inactive_users(self):
+        users = await get_inactive_users(datetime.now(timezone.utc))
+
+        for user in users:
+            job = await self.arq_pool.enqueue_job(
+                'send_nudge',
+                telegram_user_id=user.telegram_id,
+                _job_id=f"send_nudge_{user.telegram_id}",
+                _queue_name='messages_for_users'
+            )
+
+            if job:
+                logger.info(f"Message {user.telegram_id} enqueued for deletion")
+            else:
+                logger.warning(f"Message {user.telegram_id} duplicate")
+
+        logger.info(f"Successfully enqueued {len(users)} messages on delete")
 
     async def push_tasks(self):
-        redis_client = init_redis()
+        """
+        Основной цикл scheduler'а
+
+        1. Берёт lock в Redis (только один scheduler может работать)
+        2. Обрабатывает готовые таски
+        3. Находит истекшие сообщения для удаления
+        4. Отправляет напоминания неактивным юзерам
+        """
+        redis_client = None
+        arq_pool = None
 
         try:
+            # Инициализируем Redis
+            redis_client = init_redis()
+
+            # Пытаемся получить lock
             async with Lock(
                     redis_client,
                     name=settings.scheduler_lock_key,
@@ -84,30 +118,59 @@ class Scheduler:
                     blocking_timeout=1,
             ) as lock:
 
+                # Проверяем что lock принадлежит нам
                 if not await lock.owned():
-                    logger.info("Another scheduler is running, skipping...")
+                    logger.info("⏭️ Another scheduler is running, skipping...")
                     return
 
-                logger.info("Lock acquired, processing tasks...")
+                logger.info("🔒 Lock acquired, processing tasks...")
 
-                self.arq_pool = await create_pool(RedisSettings(
+                # Создаём ARQ pool
+                arq_pool = await create_pool(RedisSettings(
                     host=settings.redis_host,
                     port=settings.redis_port,
                     database=settings.redis_db,
-                    )
+                ))
+
+                self.arq_pool = arq_pool
+
+                # Параллельно выполняем все задачи
+                results = await asyncio.gather(
+                    self._get_ready_tasks(),
+                    self._get_expired_message(),
+                    self._get_inactive_users(),
+                    return_exceptions=True
                 )
 
-                await self._get_ready_tasks()
-                await self._get_expired_message()
+                # Логируем ошибки (если были)
+                for i, result in enumerate(results):
+                    if isinstance(result, Exception):
+                        task_names = ["ready_tasks", "expired_messages", "inactive_users"]
+                        logger.error(f"❌ Error in {task_names[i]}: {result}", exc_info=result)
+
+                logger.info("✅ Scheduler cycle completed")
+
+        except LockError as e:
+            logger.warning(f"⚠️ Failed to acquire lock: {e}")
 
         except Exception as e:
-            logger.error(f"Error in push_ready_tasks: {e}", exc_info=True)
+            logger.error(f"💥 Critical error in push_tasks: {e}", exc_info=True)
 
         finally:
-            if self.arq_pool:
-                await self.arq_pool.close()
-                logger.info("ARQ pool closed")
+            # Закрываем ARQ pool
+            if arq_pool:
+                try:
+                    await arq_pool.close()
+                    logger.debug("ARQ pool closed")
+                except Exception as e:
+                    logger.error(f"Error closing ARQ pool: {e}")
 
-            await redis_client.close()
+            # Закрываем Redis client
+            if redis_client:
+                try:
+                    await redis_client.close()
+                    logger.debug("Redis client closed")
+                except Exception as e:
+                    logger.error(f"Error closing Redis client: {e}")
 
 

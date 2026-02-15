@@ -51,12 +51,7 @@ class PaymentCheckerScheduler:
                             )
                             logger.info(f"✅ Платёж {payment.id} успешен")
 
-                        elif (
-                                status["status"] in ["canceled", "failed"]
-                                # or (payment.created_at and #TODO время жизни платежа перенести в конфиг или другое место
-                                #                            #TODO подумать насчет валидности самостоятельного закрытия платежа
-                                #     (datetime.now(settings.timezone) - payment.created_at).total_seconds() > 100)
-                        ):
+                        elif status["status"] in ["canceled", "failed"]:
                             await mark_payment(
                                 payment_id=payment.id,
                                 new_status=PaymentStatusEnum.FAILED,

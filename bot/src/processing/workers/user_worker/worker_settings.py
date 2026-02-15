@@ -1,5 +1,7 @@
 import asyncio
+from datetime import timezone, datetime, timedelta
 
+from src.controllers.user_states import DayBStates
 from src.core.logging_config import setup_logging
 logger = setup_logging(__name__, service="user_worker")
 
@@ -18,6 +20,8 @@ from src.core.database import init_db
 from src.core.redis import init_redis
 from src.processing.task_factory import TaskFactory
 from src.views.sent_message import mark_message_as_deleted, track_message
+from src.models import UserState
+from src.models.offer import OfferCodesEnum
 
 
 async def startup(ctx):
@@ -76,6 +80,10 @@ async def send_scheduled_message(ctx, task_id, task_type, payload):
 
             task = await ScheduledTask.filter(id=task_id).using_db(conn).first()
 
+            if not task:
+                logger.error(f"❌ Task {task_id} not found in database")
+                return
+
             #Если таска не выполнялась
             if not task.processed:
                 #Если таска работает с бд
@@ -84,26 +92,26 @@ async def send_scheduled_message(ctx, task_id, task_type, payload):
                     await handler.prepare(conn)
 
                     await task.refresh_from_db(using_db=conn)
-                    await task.save(using_db=conn)
 
                 task.processed = True
                 await task.save(using_db=conn)
 
         message = await handler.execute()
 
-        #TODO перепелить эту хуйню ебанную
-        await track_message(
-            user_id=payload["user_id"],
-            telegram_message_id=message.message_id,
-            tag=payload["tag"],
-            stage=payload["stage"],
-            delete_at=payload["delete_at"],
-            delete_on_stage=payload["delete_on_stage"],
-        )
+        if message and message.message_id:
+
+            await track_message(
+                user_id=payload["user_id"],
+                telegram_message_id=message.message_id,
+                tag=payload["message_tag"],
+                stage=payload["message_stage"],
+                delete_at=payload["delete_at"],
+                delete_on_stage=payload["delete_on_stage"],
+            )
 
         logger.info(f"Task {task_id} completed and saved to DB")
 
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.25)
 
     except Exception as e:
         logger.error(f"Error handling task {task_id}: {e}", exc_info=True)
@@ -116,7 +124,6 @@ async def send_scheduled_message(ctx, task_id, task_type, payload):
 
         raise Exception("Connection Error: The service is currently unavailable. Please try again later.")
 
-#TODO протестировать
 async def delete_message(
                          ctx,
                          message_id,
@@ -153,6 +160,89 @@ async def delete_message(
         logger.error(f"❌ Error deleting message {message_id}: {e}", exc_info=True)
 
 
+async def send_nudge(ctx, telegram_user_id: int):
+    """
+    Отправка напоминания неактивному пользователю
+
+    Args:
+        ctx: Контекст ARQ (содержит bot)
+        telegram_user_id: Telegram ID пользователя
+    """
+
+    logger.info(f"📨 Sending nudge to user {telegram_user_id}")
+
+    bot: SafeBot = ctx["bot"]
+
+    job_try = ctx.get("job_try", 1)
+    max_tries = ctx.get("max_tries", 3)
+
+    try:
+        # Получаем текущий стейдж юзера
+        user_state = await UserState.filter(
+            user_id=telegram_user_id,
+            offer__code=OfferCodesEnum.SMART_WALLET
+        ).first()
+
+        if not user_state:
+            logger.warning(f"⚠️ User {telegram_user_id} not found, skipping nudge")
+            return
+
+        # Проверяем что напоминание ещё не отправлялось
+        if user_state.nudge_sent:
+            logger.info(f"⏭️ Nudge already sent to user {telegram_user_id}, skipping")
+            return
+
+        # Текст напоминания
+        text = """Слушай, ну мы же не просто так это всё затеяли.
+
+        Нам осталось всего одно действие, чтобы пазл сложился.
+        
+        Ты здесь? Продолжим?"""
+
+        message = await bot.send_message(
+            chat_id=telegram_user_id,
+            text=text,
+            parse_mode="Markdown"
+        )
+
+        if message and message.message_id:
+
+            async with in_transaction() as conn:
+                user_state.nudge_sent = True
+                await user_state.save(using_db=conn)
+
+                await track_message(
+                    user_id=telegram_user_id,
+                    telegram_message_id=message.message_id,
+                    tag=SentMessageTagEnum.FUNNEL,
+                    stage='day_a_nudge',
+                    delete_at=datetime.now(timezone.utc) + timedelta(hours=6),
+                    delete_on_stage=DayBStates.B_1_COLD_SHOWER,
+                )
+
+        logger.info(f"✅ Nudge sent to user {telegram_user_id} (stage: {user_state.state})")
+
+        await asyncio.sleep(0.5)
+
+    except TelegramBadRequest as e:
+            logger.error(f"❌ Telegram error sending nudge to {telegram_user_id}: {e}")
+
+            if job_try < max_tries:
+                defer_by = job_try * 5
+                logger.warning(f"🔄 Retrying nudge in {defer_by}s")
+                raise Retry(defer=defer_by) from e
+
+    except Exception as e:
+        logger.error(f"❌ Error sending nudge to {telegram_user_id}: {e}", exc_info=True)
+
+        if job_try < max_tries:
+            defer_by = job_try * 5
+            logger.warning(f"🔄 Retrying nudge in {defer_by}s")
+            raise Retry(defer=defer_by) from e
+
+        raise Exception(f"Failed to send nudge to {telegram_user_id}: {str(e)}")
+
+
 class WorkerSettings:
     """Настройки arq worker"""
 
@@ -163,7 +253,11 @@ class WorkerSettings:
     )
 
 
-    functions = [send_scheduled_message, delete_message]
+    functions = [
+        send_scheduled_message,
+        delete_message,
+        send_nudge
+    ]
 
     max_jobs = 1
 

@@ -20,7 +20,7 @@ class UserState(Model):
     )
 
     state = fields.CharField(max_length=100, null=True)
-    last_activity_at = fields.DatetimeField(default=datetime.now(settings.timezone))
+    last_activity_at = fields.DatetimeField(default=lambda: datetime.now(settings.timezone))
 
     #Отправлялось ли напоминание
     nudge_sent = fields.BooleanField(default=False)

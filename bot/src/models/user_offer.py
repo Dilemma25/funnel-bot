@@ -1,6 +1,16 @@
 from tortoise.models import Model
 from tortoise import fields
 
+from enum import Enum
+
+
+class UserOfferStatusEnum(str, Enum):
+    ACTIVE = "active"  # Активен, проходит воронку
+    PURCHASED = "purchased"  # Купил
+    DROPPED = "dropped"  # Отвалился (не купил)
+    BLOCKED_BOT = "blocked_bot"  # Заблокировал бота
+    COMPLETED_FREE = "completed_free"  # Прошёл воронку, но не купил
+
 
 class UserOffer(Model):
     id = fields.IntField(pk=True)
@@ -10,6 +20,11 @@ class UserOffer(Model):
 
     discount_price = fields.FloatField(null=True)          # персональная скидка
     discount_expires_at = fields.DatetimeField(null=True)  # срок действия скидки
+
+    status = fields.CharEnumField(
+        UserOfferStatusEnum,
+        default=UserOfferStatusEnum.ACTIVE
+    )
 
     created_at = fields.DatetimeField(auto_now_add=True)
 

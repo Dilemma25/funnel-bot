@@ -9,7 +9,9 @@ from tortoise.transactions import in_transaction
 
 from src.models.payment import PaymentStatusEnum
 from src.models.sent_message import SentMessageTagEnum, SentMessageDeleteTimings
+from src.models.user_log import EventTypeEnum
 from src.views.sent_message import track_message
+from src.views.user_log import create_user_log
 from src.views.user_offer_payment import create_user_offer_payment
 from src.views.user_state.update_user_state import update_user_state
 from . import day_a_router
@@ -26,6 +28,17 @@ async def handle_buy(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
     user_id = callback.from_user.id
+
+    payload = {
+        "clicked_button": f"{callback.data.split(":")[1]}: Оплата({callback.data.split(":")[1].capitalize().replace("_", ".")})"
+    }
+
+    await create_user_log(
+        user_id=user_id,
+        event_type=EventTypeEnum.BUTTON_CLICKED,
+        user_stage=DayAStates.A_9_2_FAQ_SENT,
+        payload=payload,
+    )
 
     # Получаем актуальную цену
     current_price = await get_current_price(user_id, OfferCodesEnum.SMART_WALLET)

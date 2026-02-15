@@ -5,7 +5,6 @@ class UserRoleEnum:
     ADMIN = 'admin'
     USER = 'user'
 
-# TODO скорее всего прийдется добавить поле, что пользователь не активен, надо будет подумать
 class User(Model):
     telegram_id = fields.BigIntField(pk=True)
 
