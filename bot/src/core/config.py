@@ -45,6 +45,8 @@ class Settings(BaseSettings):
 
     admin_ids: list[int] = Field(default_factory=list, alias="ADMIN_IDS")
 
+    webhook_url: str = Field(alias="WEBHOOK_URL")
+
     @property
     def is_dev(self) -> bool:
         return self.app_env == Environment.DEVELOPMENT

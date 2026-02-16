@@ -1,0 +1,51 @@
+services:
+  funnel-webhook:
+    build:
+      context: ./bot
+      dockerfile: ./src/webhook_server/Dockerfile
+    container_name: funnel-webhook
+    env_file: .env
+    ports:
+      - "127.0.0.1:8000:8000"  # Только localhost (Nginx проксирует)
+    volumes:
+      - ./bot:/app
+      - ./logs:/app/logs
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+  funnel-task-scheduler:
+    build:
+      context: ./bot
+      dockerfile: ./src/processing/schedulers/task_scheduler/Dockerfile
+    container_name: funnel-task-scheduler
+    env_file: .env
+    volumes:
+      - ./bot:/app
+      - ./logs:/app/logs
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+  funnel-payment-checker-scheduler:
+    build:
+      context: ./bot
+      dockerfile: ./src/processing/schedulers/payment_checker_scheduler/Dockerfile
+    container_name: funnel-payment-checker-scheduler
+    env_file: .env
+    volumes:
+      - ./bot:/app
+      - ./logs:/app/logs
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+  funnel-user-consumer:
+    build:
+      context: ./bot
+      dockerfile: ./src/processing/workers/user_worker/Dockerfile
+    container_name: funnel-user-consumer
+    env_file: .env
+    volumes:
+      - ./bot:/app
+      - ./logs:/app/logs
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped

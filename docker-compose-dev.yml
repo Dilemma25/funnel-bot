@@ -42,7 +42,7 @@ services:
   funnel-bot:
     build:
       context: ./bot
-      dockerfile: Dockerfile  # Создай Dockerfile в ./bot/
+      dockerfile: Dockerfile
     container_name: funnel-bot
     env_file: .env
     network_mode: host
@@ -67,7 +67,3 @@ services:
 #     - /etc/timezone:/etc/timezone:ro
 #     - /etc/localtime:/etc/localtime:ro
 #   restart: unless-stopped
-
-
-volumes:
-  scheduler_logs:
