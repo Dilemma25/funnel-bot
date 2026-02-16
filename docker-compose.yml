@@ -13,6 +13,10 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     restart: unless-stopped
+    networks:
+      - redis-net
+      - postgres-net
+
   funnel-task-scheduler:
     build:
       context: ./bot
@@ -25,6 +29,9 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     restart: unless-stopped
+    networks:
+      - redis-net
+      - postgres-net
   funnel-payment-checker-scheduler:
     build:
       context: ./bot
@@ -37,6 +44,9 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     restart: unless-stopped
+    networks:
+      - redis-net
+      - postgres-net
   funnel-user-consumer:
     build:
       context: ./bot
@@ -49,3 +59,12 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     restart: unless-stopped
+    networks:
+      - redis-net
+      - postgres-net
+
+networks:
+  redis-net:
+    external: true
+  postgres-net:
+    external: true
