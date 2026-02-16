@@ -14,4 +14,4 @@ RUN mkdir -p /app/logs
 
 ENV PYTHONPATH=/app
 
-CMD ["python", "-m", "src.webhook_server"]
+CMD ["python", "-m", "src.webhook_bot_server"]
