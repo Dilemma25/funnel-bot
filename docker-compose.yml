@@ -2,7 +2,7 @@ services:
   funnel-webhook:
     build:
       context: ./bot
-      dockerfile: ./src/webhook_server/Dockerfile
+      dockerfile: ./src/webhook_bot_server/Dockerfile
     container_name: funnel-webhook
     env_file: .env
     ports:
