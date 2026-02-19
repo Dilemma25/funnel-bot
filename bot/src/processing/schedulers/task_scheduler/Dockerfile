@@ -8,10 +8,12 @@ COPY pyproject.toml poetry.lock* ./
 
 RUN pip install poetry && poetry install --no-root
 
-#COPY ../.. .
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
 COPY . .
 
-RUN mkdir -p /app/var/log
+RUN mkdir -p /app/logs && chown -R appuser:appuser /app
+
 
 ENV PYTHONPATH=/app
 

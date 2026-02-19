@@ -10,11 +10,11 @@ RUN pip install poetry && \
     poetry config virtualenvs.create false && \
     poetry install --no-root
 
-# Копируем весь код
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
 COPY . .
 
-# Создаем директорию для логов
-RUN mkdir -p /app/logs
+RUN mkdir -p /app/logs && chown -R appuser:appuser /app
 
 # Устанавливаем PYTHONPATH
 ENV PYTHONPATH=/app
