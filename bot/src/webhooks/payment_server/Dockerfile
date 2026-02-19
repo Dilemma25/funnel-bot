@@ -32,11 +32,9 @@ ENV PYTHONUNBUFFERED=1
 
 USER appuser
 
-CMD [
-     "uvicorn",
+CMD ["uvicorn",
      "src.webhooks.payment_server.app:app",
      "--host", "0.0.0.0",
      "--port", "8001",
      "--lifespan", "on",
-     "--proxy-headers"
- ]
+     "--proxy-headers"]
