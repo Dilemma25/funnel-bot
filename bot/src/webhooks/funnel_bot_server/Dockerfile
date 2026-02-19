@@ -33,9 +33,4 @@ ENV PYTHONUNBUFFERED=1
 
 USER appuser
 
-CMD ["uvicorn",
-     "src.webhooks.funnel_bot_server.app:app",
-     "--host", "0.0.0.0",
-     "--port", "8000",
-     "--lifespan", "on",
-     "--proxy-headers"]
+CMD ["uvicorn", "src.webhooks.funnel_bot_server.app:app","--host", "0.0.0.0","--port", "8000","--lifespan", "on","--proxy-headers"]
