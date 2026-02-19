@@ -12,9 +12,10 @@ RUN pip install poetry && \
 
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
-COPY . .
+RUN mkdir -p /app/logs && \
+    chown -R appuser:appuser /app
 
-RUN mkdir -p /app/logs && chown -R appuser:appuser /app
+COPY --chown=appuser:appuser . .
 
 # Устанавливаем PYTHONPATH
 ENV PYTHONPATH=/app
