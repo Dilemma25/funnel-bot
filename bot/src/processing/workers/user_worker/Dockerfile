@@ -8,7 +8,7 @@ COPY pyproject.toml poetry.lock* ./
 
 RUN pip install poetry && poetry install --no-root
 
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+RUN groupadd -r -g 1000 appuser && useradd -r -u 1000 -g appuser appuser
 
 RUN mkdir -p /app/logs && \
     chown -R appuser:appuser /app

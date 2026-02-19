@@ -14,7 +14,7 @@ FROM python:3.12-slim AS runtime
 
 WORKDIR /app
 
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+RUN groupadd -r -g 1000 appuser && useradd -r -u 1000 -g appuser appuser
 
 COPY --from=builder /app/.venv /app/.venv
 
