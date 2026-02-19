@@ -18,11 +18,10 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 COPY --from=builder /app/.venv /app/.venv
 
-COPY . .
+RUN mkdir -p /app/logs && \
+    chown -R appuser:appuser /app
 
-RUN mkdir -p /app/logs \
-    && chown -R appuser:appuser /app/logs \
-    && chmod -R 775 /app/logs
+COPY --chown=appuser:appuser . .
 
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH=/app
