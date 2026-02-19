@@ -1,9 +1,10 @@
+from src.controllers.common_states import CommonStates
 from src.core.logging_config import setup_logging
-from src.models.user_log import EventTypeEnum
+from src.models.user_history import EventTypeEnum
 from src.views.sent_message import track_message
-from src.views.user_log import create_user_log
+from src.views.user_history import create_user_history
 
-logger = setup_logging(__name__, service='bot')
+logger = setup_logging(__name__, service='funnel_bot')
 
 from datetime import datetime
 
@@ -126,7 +127,7 @@ async def handle_a7_next(callback: CallbackQuery, state: FSMContext):
                 ),
 
                 message_tag = SentMessageTagEnum.FUNNEL,
-                message_stage = DayAStates.FINAL,
+                message_stage = CommonStates.DISCOUNT_EXPIRES,
                 delete_at = datetime.now(settings.timezone) + SentMessageDeleteTimings.get_default(),
                 delete_on_stage = DayBStates.B_1_COLD_SHOWER,
             )
@@ -217,7 +218,7 @@ async def handle_faq(callback: CallbackQuery, state: FSMContext):
             "clicked_button": "a9: Узнать подробнее(A9.1)"
         }
 
-        await create_user_log(
+        await create_user_history(
             user_id=user_id,
             event_type=EventTypeEnum.BUTTON_CLICKED,
             user_stage=DayAStates.A_9_OFFER_SENT,
@@ -308,7 +309,7 @@ async def handle_reviews(callback: CallbackQuery, state: FSMContext):
             "clicked_button": "a9_2_2: Отзывы(A9.2.2)"
         }
 
-        await create_user_log(
+        await create_user_history(
             user_id=user_id,
             event_type=EventTypeEnum.BUTTON_CLICKED,
             user_stage=DayAStates.A_9_2_FAQ_SENT,

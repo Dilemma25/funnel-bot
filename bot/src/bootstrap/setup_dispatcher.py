@@ -1,13 +1,11 @@
 from aiogram import Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
 
-from src.core.logging_config import setup_logging
 from src.core.redis import init_redis
 from src.middlewares.user_check import UserCheckMiddleware
 from src.middlewares.error_handler import ErrorHandlerMiddleware
 from .setap_routers import setup_routers
 
-logger = setup_logging(__name__, service="webhook")
 
 
 def setup_dispatcher() -> Dispatcher:
@@ -31,7 +29,5 @@ def setup_dispatcher() -> Dispatcher:
     # Подключаем мiddleware
     dp.message.middleware(UserCheckMiddleware())
     dp.update.middleware(ErrorHandlerMiddleware())
-
-    logger.info("✅ Dispatcher configured")
 
     return dp

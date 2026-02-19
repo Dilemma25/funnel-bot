@@ -1,42 +1,64 @@
 services:
-  funnel-task-scheduler:
+  funnel-migrator:
     build:
       context: ./bot
-      dockerfile: ./src/processing/schedulers/task_scheduler/Dockerfile
-    container_name: funnel-task-scheduler
-    env_file: .env
-    network_mode: host
+      dockerfile: ./migrations/Dockerfile
+    container_name: funnel-migrator 
+    env_file: .env.dev
     volumes:
       - ./bot:/app
       - ./logs:/app/logs
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+    network_mode: host
+    restart: on-failure
+  funnel-task-scheduler:
+    build:
+      context: ./bot
+      dockerfile: ./src/processing/schedulers/task_scheduler/Dockerfile
+    container_name: funnel-task-scheduler
+    env_file: .env.dev
+    volumes:
+      - ./bot:/app
+      - ./logs:/app/logs
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    network_mode: host
+    depends_on:
+      funnel-migrator:
+        condition: service_completed_successfully
     restart: unless-stopped
   funnel-payment-checker-scheduler:
     build:
       context: ./bot
       dockerfile: ./src/processing/schedulers/payment_checker_scheduler/Dockerfile
     container_name: funnel-payment_checker_schedule
-    env_file: .env
-    network_mode: host
+    env_file: .env.dev
     volumes:
       - ./bot:/app
       - ./logs:/app/logs
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+    network_mode: host
+    depends_on:
+      funnel-migrator:
+        condition: service_completed_successfully
     restart: unless-stopped
   funnel-user-consumer:
     build:
       context: ./bot
       dockerfile: ./src/processing/workers/user_worker/Dockerfile
     container_name: user-consumer
-    env_file: .env
-    network_mode: host
+    env_file: .env.dev
     volumes:
       - ./bot:/app
       - ./logs:/app/logs
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+    network_mode: host
+    depends_on:
+      funnel-migrator:
+        condition: service_completed_successfully
     restart: unless-stopped
 
   funnel-bot:
@@ -44,26 +66,14 @@ services:
       context: ./bot
       dockerfile: Dockerfile
     container_name: funnel-bot
-    env_file: .env
-    network_mode: host
+    env_file: .env.dev
     volumes:
       - ./bot:/app
       - ./logs:/app/logs
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+    network_mode: host
+    depends_on:
+      funnel-migrator:
+        condition: service_completed_successfully
     restart: unless-stopped
-
-# funnel-webhook:
-#   build:
-#     context: ./bot
-#     dockerfile: ./src/webhook_server/Dockerfile
-#   container_name: funnel-webhook
-#   env_file: .env
-#   ports:
-#     - "8000:8000"
-#   volumes:
-#     - ./bot:/app
-#     - ./logs:/app/logs
-#     - /etc/timezone:/etc/timezone:ro
-#     - /etc/localtime:/etc/localtime:ro
-#   restart: unless-stopped

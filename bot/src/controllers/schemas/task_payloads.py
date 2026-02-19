@@ -48,7 +48,7 @@ class BaseTaskPayload(BaseModel):
 
     class Config:
         # Разрешить дополнительные поля (для гибкости)
-        extra = "forbid"  # или "allow" если нужна гибкость
+        extra = "allow"  # или "allow" если нужна гибкость
 
 
 class MessageTaskPayload(BaseTaskPayload):

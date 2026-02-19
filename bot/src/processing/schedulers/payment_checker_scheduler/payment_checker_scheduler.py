@@ -1,17 +1,21 @@
+from src.core.logging_config import setup_logging
+logger = setup_logging(__name__, service="payment_checker_scheduler")
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import timedelta
 from datetime import datetime
 import asyncio
 
-from src.models import UserOfferPayment
 from src.models.payment import PaymentStatusEnum
+from src.safe_bot import SafeBot
 from src.services.payment import PaymentService
-from src.views.user_offer_payment import mark_payment
+from src.services.telgram_notify import TelegramNotifier
+from src.views.user_offer_payment import mark_payment, get_pending_payments
 from tortoise.transactions import in_transaction
-from src.core.logging_config import setup_logging
+
 from src.core.config import settings
 
-logger = setup_logging(__name__, service="payment_checker_scheduler")
+
 
 
 class PaymentCheckerScheduler:
@@ -23,10 +27,10 @@ class PaymentCheckerScheduler:
         try:
             threshold = datetime.now() - timedelta(minutes=2)
 
-            pending_payments = await UserOfferPayment.filter(
-                status=PaymentStatusEnum.PENDING,
-                created_at__lte=threshold
-            ).limit(20).all()  # Батч из 20
+            pending_payments = await get_pending_payments(
+                threshold=threshold,
+                limit=20
+            )# Батч из 20
 
             if not pending_payments:
                 logger.debug("Нет pending платежей")
@@ -36,22 +40,34 @@ class PaymentCheckerScheduler:
 
             for payment in pending_payments:
                 try:
-                    status = await PaymentService.check_payment_status(payment.yookassa_payment_id)
+                    payment_info = await PaymentService.get_payment_info(payment.yookassa_payment_id)
 
                     logger.info(
-                        f"📊 Payment {payment.id}: paid={status['paid']}, status={status['status']}"
+                        f"📊 Payment {payment.id}: paid={payment_info.paid}, status={payment_info.status}"
                     )
 
                     async with in_transaction() as conn:
-                        if status["paid"]:
+                        if payment_info.paid and payment_info.status == "succeeded":
                             await mark_payment(
                                 payment_id=payment.id,
                                 new_status=PaymentStatusEnum.SUCCESSFUL,
                                 connection=conn
                             )
+
+                            await payment.fetch_related("user", using_db=conn)
+
+                            user = payment.user
+
+                            bot = SafeBot(settings.funnel_bot_token)
+
+                            await TelegramNotifier.notify_user_succeeded_payment(
+                                bot=bot,
+                                user_id=user.id,
+                                amount=float(payment_info.amount.value),
+                            )
                             logger.info(f"✅ Платёж {payment.id} успешен")
 
-                        elif status["status"] in ["canceled", "failed"]:
+                        elif payment_info.status in ["canceled", "failed"]:
                             await mark_payment(
                                 payment_id=payment.id,
                                 new_status=PaymentStatusEnum.FAILED,
