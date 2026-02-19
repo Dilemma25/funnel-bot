@@ -20,7 +20,7 @@ COPY --from=builder /app/.venv /app/.venv
 
 COPY . .
 
-RUN mkdir -p /app/logs && chown -R appuser:appuser /app
+RUN mkdir -p /app/logs && chown -R appuser:appuser /app && chmod -R 775 /app/logs
 
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH=/app
