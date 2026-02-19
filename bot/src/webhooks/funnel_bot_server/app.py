@@ -41,7 +41,7 @@ async def lifespan(fastapi_app: FastAPI):
         logger.info("✅ Bot initialized")
 
         # Установка webhook
-        webhook_url = f"{settings.webhook_url}/webhooks/telegram"
+        webhook_url = f"{settings.funnel_bot_webhook_url}/webhooks/telegram"
 
         await bot.set_webhook(
             url=webhook_url,
