@@ -46,8 +46,8 @@ services:
       - /etc/localtime:/etc/localtime:ro
     restart: unless-stopped
     networks:
-      - redis_net
-      - postgres_net
+      - redis-net
+      - postgres-net
     depends_on:
       funnel-migrator:
         condition: service_completed_successfully
