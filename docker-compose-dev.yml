@@ -11,7 +11,6 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     network_mode: host
-    restart: on-failure
   funnel-task-scheduler:
     build:
       context: ./bot

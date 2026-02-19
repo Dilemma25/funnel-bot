@@ -8,7 +8,6 @@ services:
     volumes:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-    restart: on-failure
     networks:
       - redis-net
       - postgres-net
@@ -32,9 +31,8 @@ services:
     depends_on:
       funnel-migrator:
         condition: service_completed_successfully
-
   funnel-payment-webhook:
-    biuld:
+    build:
       context: ./bot
       target: runtime
       dockerfile: ./src/webhooks/payment_server/Dockerfile
@@ -53,7 +51,6 @@ services:
     depends_on:
       funnel-migrator:
         condition: service_completed_successfully
-
   funnel-task-scheduler:
     build:
       context: ./bot
