@@ -8,17 +8,13 @@ COPY pyproject.toml poetry.lock* ./
 
 RUN pip install poetry && poetry install --no-root
 
-RUN groupadd -r -g 1000 appuser && useradd -r -u 1000 -g appuser appuser
+RUN mkdir -p /app/logs
 
-RUN mkdir -p /app/logs && \
-    chown -R appuser:appuser /app
+COPY . .
 
-COPY --chown=appuser:appuser . .
+RUN chmod +x /app/scripts/task_scheduler/entrypoint.sh && \
+    crontab /app/scripts/task_scheduler/crontab
 
 ENV PYTHONPATH=/app
 
-RUN chmod +x /app/scripts/task_scheduler/entrypoint.sh
-
-USER appuser
-
-ENTRYPOINT ["/app/scripts/task_scheduler/entrypoint.sh"]
+ENTRYPOINT ["sh", "/app/scripts/task_scheduler/entrypoint.sh"]

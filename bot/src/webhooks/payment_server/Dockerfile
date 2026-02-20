@@ -14,19 +14,14 @@ FROM python:3.12-slim AS runtime
 
 WORKDIR /app
 
-RUN groupadd -r -g 1000 appuser && useradd -r -u 1000 -g appuser appuser
+RUN mkdir -p /app/logs
 
 COPY --from=builder /app/.venv /app/.venv
 
-RUN mkdir -p /app/logs && \
-    chown -R appuser:appuser /app
-
-COPY --chown=appuser:appuser . .
+COPY . .
 
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
-
-USER appuser
 
 CMD ["uvicorn","src.webhooks.payment_server.app:app","--host", "0.0.0.0","--port", "8001","--lifespan", "on","--proxy-headers"]
