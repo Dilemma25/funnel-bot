@@ -67,6 +67,8 @@ class PaymentCheckerScheduler:
                             )
                             logger.info(f"✅ Платёж {payment.id} успешен")
 
+                            await bot.session.close()
+
                         elif payment_info.status in ["canceled", "failed"]:
                             await mark_payment(
                                 payment_id=payment.id,
