@@ -21,29 +21,38 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    bot_token: str = Field(alias="BOT_TOKEN")
-
+    #DATABASE
     database_user: str = Field(alias="DATABASE_USER")
     database_password: str = Field(alias="DATABASE_PASSWORD")
     database_host: str = Field(alias="DATABASE_HOST")
     database_port: int = Field(alias="DATABASE_PORT")
     database_name: str = Field(alias="DATABASE_NAME")
 
-    tz: str = Field(alias="TZ")
-
+    #REDIS
     redis_host: str = Field(alias="REDIS_HOST")
     redis_port: int = Field(alias="REDIS_PORT")
     redis_db: int = Field(alias="REDIS_DB")
-
     scheduler_lock_key: str = Field(alias="SCHEDULER_LOCK_KEY")
     redis_stream_key: str = Field(alias="REDIS_STREAM_KEY")
 
+    #FUNNEL_BOT
+    funnel_bot_webhook_url: str = Field(alias="FUNNEL_BOT_WEBHOOK_URL")
+    funnel_bot_token: str = Field(alias="FUNNEL_BOT_TOKEN")
+    funnel_bot_webhook_secret_token: str = Field(alias="FUNNEL_BOT_WEBHOOK_SECRET_TOKEN")
+
+    #COURSE_BOT
+    course_bot_link: str = "ССЫЛКА НА БОТА"
+
+    #YOOKASSA
     shop_secret_key: str = Field(alias="SHOP_SECRET_KEY")
     shop_id: str = Field(alias="SHOP_ID")
 
+    #APP Environment
+    tz: str = Field(alias="TZ")
     app_env: Environment = Field(default=Environment.DEVELOPMENT, alias="APP_ENV")
-
     admin_ids: list[int] = Field(default_factory=list, alias="ADMIN_IDS")
+
+
 
     @property
     def is_dev(self) -> bool:

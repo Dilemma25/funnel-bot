@@ -2,16 +2,13 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY pyproject.toml poetry.lock* ./
+COPY pyproject.toml poetry.lock ./
 
-RUN pip install poetry && \
+RUN pip install --no-cache-dir poetry && \
     poetry config virtualenvs.create false && \
     poetry install --no-root
-
-RUN mkdir -p /app/logs
-
 COPY . .
 
 ENV PYTHONPATH=/app
 
-CMD ["python", "-m", "main"]
+CMD ["aerich", "upgrade"]

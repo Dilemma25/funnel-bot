@@ -25,6 +25,7 @@ async def main():
             await asyncio.sleep(1)
     except KeyboardInterrupt:
         logger.info("Получен сигнал завершения...")
+    finally:
         checker.shutdown()
         await close_db()
         logger.info("PaymentCheckerScheduler: завершён")

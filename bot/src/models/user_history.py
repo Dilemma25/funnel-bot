@@ -12,7 +12,7 @@ class EventTypeEnum(str, Enum):
 
 
 
-class UserLog(Model):
+class UserHistory(Model):
     """События для аналитики воронки"""
 
     id = fields.BigIntField(pk=True)
@@ -20,13 +20,13 @@ class UserLog(Model):
     # Связь с юзером
     user = fields.ForeignKeyField(
         "models.User",
-        related_name="analytics_events",
+        related_name="history",
         on_delete=fields.CASCADE
     )
 
     offer = fields.ForeignKeyField(
         "models.Offer",
-        related_name="analytics_events",
+        related_name="users_history",
         on_delete=fields.SET_NULL,
         null=True
     )
@@ -41,7 +41,7 @@ class UserLog(Model):
     created_at = fields.DatetimeField(auto_now_add=True, index=True)
 
     class Meta:
-        table = "logs"
+        table = "user_history"
         indexes = (
             ("user_id", "event_type"),
             ("event_type", "created_at"),

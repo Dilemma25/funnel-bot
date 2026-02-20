@@ -4,88 +4,106 @@ services:
       context: ./bot
       dockerfile: ./migrations/Dockerfile
     container_name: funnel-migrator 
-    env_file: .env.dev
+    env_file: .env
     volumes:
-      - ./bot:/app
-      - ./logs:/app/logs
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     networks:
       - redis-net
       - postgres-net
+  funnel-main-bot:
+    build:
+      context: ./bot
+      target: runtime
+      dockerfile: ./src/webhooks/funnel_bot_server/Dockerfile
+    container_name: funnel-main-bot
+    env_file: .env
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./logs:/app/logs
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    networks:
+      - redis-net
+      - postgres-net
+    depends_on:
+      funnel-migrator:
+        condition: service_completed_successfully
+  funnel-payment-webhook:
+    build:
+      context: ./bot
+      target: runtime
+      dockerfile: ./src/webhooks/payment_server/Dockerfile
+    container_name: funnel-paymment-webhook
+    env_file: .env
+    ports:
+    - "127.0.0.1:8001:8001"
+    volumes:
+      - ./logs:/app/logs
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    networks:
+      - redis-net
+      - postgres-net
+    depends_on:
+      funnel-migrator:
+        condition: service_completed_successfully
   funnel-task-scheduler:
     build:
       context: ./bot
       dockerfile: ./src/processing/schedulers/task_scheduler/Dockerfile
     container_name: funnel-task-scheduler
-    env_file: .env.dev
+    env_file: .env
     volumes:
-      - ./bot:/app
       - ./logs:/app/logs
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
     networks:
       - redis-net
       - postgres-net
     depends_on:
       funnel-migrator:
         condition: service_completed_successfully
-    restart: unless-stopped
+
   funnel-payment-checker-scheduler:
     build:
       context: ./bot
       dockerfile: ./src/processing/schedulers/payment_checker_scheduler/Dockerfile
-    container_name: funnel-payment_checker_schedule
-    env_file: .env.dev
+    container_name: funnel-payment-checker-scheduler
+    env_file: .env
     volumes:
-      - ./bot:/app
       - ./logs:/app/logs
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
     networks:
       - redis-net
       - postgres-net
     depends_on:
       funnel-migrator:
         condition: service_completed_successfully
-    restart: unless-stopped
+
   funnel-user-consumer:
     build:
       context: ./bot
       dockerfile: ./src/processing/workers/user_worker/Dockerfile
-    container_name: user-consumer
-    env_file: .env.dev
+    container_name: funnel-user-consumer
+    env_file: .env
     volumes:
-      - ./bot:/app
       - ./logs:/app/logs
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
     networks:
       - redis-net
       - postgres-net
     depends_on:
       funnel-migrator:
         condition: service_completed_successfully
-    restart: unless-stopped
-
-  funnel-bot:
-    build:
-      context: ./bot
-      dockerfile: Dockerfile
-    container_name: funnel-bot
-    env_file: .env.dev
-    volumes:
-      - ./bot:/app
-      - ./logs:/app/logs
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-    networks:
-      - redis-net
-      - postgres-net
-    depends_on:
-      funnel-migrator:
-        condition: service_completed_successfully
-    restart: unless-stopped
 
 networks:
   redis-net:

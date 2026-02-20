@@ -6,7 +6,7 @@ from .user import User
 from .media import Media
 from .user_state import UserState
 from .sent_message import SentMessage
-from .user_log import UserLog
+from .user_history import UserHistory
 
 
 __all__ = [
@@ -18,5 +18,5 @@ __all__ = [
     "Offer",
     "UserState",
     "SentMessage",
-    "UserLog"
+    "UserHistory"
 ]

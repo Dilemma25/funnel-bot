@@ -7,13 +7,13 @@ from src.keyboards import day_a_keyboards as day_a_keyboards
 from src.models.offer import OfferCodesEnum
 from src.controllers.day_a.consts import QUIZ_ANSWERS
 from src.models.sent_message import SentMessageDeleteTimings, SentMessageTagEnum
-from src.models.user_log import EventTypeEnum
+from src.models.user_history import EventTypeEnum
 from src.processing.task_types import TaskTypeEnum
 from src.views.media import get_media_by_file_code
 from src.views.sent_message import track_message
 from src.views.tasks import create_task
 from src.controllers.day_a import messages as messages
-from src.views.user_log import create_user_log
+from src.views.user_history import create_user_history
 from src.views.user_state.update_user_state import update_user_state
 from . import day_a_router
 
@@ -62,7 +62,7 @@ async def handle_found_problems(callback: CallbackQuery, state: FSMContext):
             "clicked_button": "a3: Нашёл(ла) несколько пунктов про себя(A3.1)"
         }
 
-        await create_user_log(
+        await create_user_history(
             user_id=user_id,
             event_type=EventTypeEnum.BUTTON_CLICKED,
             user_stage=DayAStates.A_3_CHECKLIST_SENT,
@@ -120,7 +120,7 @@ async def handle_not_found_problems(callback: CallbackQuery, state: FSMContext):
             "clicked_button": "a3: Пока не вижу явных проблем(A3.1)"
         }
 
-        await create_user_log(
+        await create_user_history(
             user_id=user_id,
             event_type=EventTypeEnum.BUTTON_CLICKED,
             user_stage=DayAStates.A_3_CHECKLIST_SENT,

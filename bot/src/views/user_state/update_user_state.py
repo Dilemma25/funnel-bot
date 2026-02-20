@@ -1,6 +1,6 @@
 from src.models import UserState
-from src.views.user_log import create_user_log
-from src.models.user_log import EventTypeEnum
+from src.views.user_history import create_user_history
+from src.models.user_history import EventTypeEnum
 
 async def update_user_state(
     user_id: int,
@@ -35,7 +35,7 @@ async def update_user_state(
     if connection:
         await user_state.save(using_db=connection)
 
-        await create_user_log(
+        await create_user_history(
             user_id=user_id,
             event_type=EventTypeEnum.STAGE_ENTERED,
             user_stage=state,
@@ -44,7 +44,7 @@ async def update_user_state(
     else:
         await user_state.save()
 
-        await create_user_log(
+        await create_user_history(
             user_id=user_id,
             event_type=EventTypeEnum.STAGE_ENTERED,
             user_stage=state,

@@ -8,11 +8,13 @@ COPY pyproject.toml poetry.lock* ./
 
 RUN pip install poetry && poetry install --no-root
 
-#COPY ../.. .
+RUN mkdir -p /app/logs
+
 COPY . .
 
-RUN mkdir -p /app/var/log
+RUN chmod +x /app/scripts/task_scheduler/entrypoint.sh && \
+    crontab /app/scripts/task_scheduler/crontab
 
 ENV PYTHONPATH=/app
 
-CMD ["/bin/sh", "-c", "echo \"* * * * * cd /app && PYTHONPATH=/app /usr/local/bin/poetry run python src/processing/schedulers/task_scheduler/scheduler_runner.py\" | crontab - && cron -f"]
+ENTRYPOINT ["sh", "/app/scripts/task_scheduler/entrypoint.sh"]

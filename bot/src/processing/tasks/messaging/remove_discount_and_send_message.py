@@ -1,4 +1,5 @@
 from src.models.payment import PaymentStatusEnum
+from src.views.sent_message import delete_message_by_delete_on_stage
 from .base_messaging import BaseMessagingTask
 from src.processing.tasks.preparable import PreparableTask
 from src.views.user_offer import remove_discount
@@ -33,6 +34,13 @@ class RemoveDiscountAndSendMessageTask(BaseMessagingTask, PreparableTask):
 
     async def execute(self) -> Message:
         keyboard = self._build_keyboard()
+
+        await delete_message_by_delete_on_stage(
+            user_id=self.payload["user_id"],
+            stage=self.payload["message_stage"],
+            tag=self.payload["message_tag"],
+            bot=self.bot,
+        )
 
         message = await self.bot.send_message(
             chat_id=self.payload["user_id"],

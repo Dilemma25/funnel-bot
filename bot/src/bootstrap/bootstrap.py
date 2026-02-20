@@ -27,5 +27,9 @@ async def start_app() -> None:
     dispatcher.update.middleware(ErrorHandlerMiddleware())
 
 
-    bot = SafeBot(token=settings.bot_token, default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN))
+    bot = SafeBot(token=settings.funnel_bot_token, default=DefaultBotProperties(
+        protect_content=True,
+        parse_mode=ParseMode.MARKDOWN
+        )
+    )
     await dispatcher.start_polling(bot)

@@ -31,6 +31,7 @@ async def track_message(
             stage=stage,
             delete_at=delete_at,
             delete_on_stage=delete_on_stage,
+            using_db=connection,
         )
     else:
         await SentMessage.create(
@@ -40,5 +41,4 @@ async def track_message(
             stage=stage,
             delete_at=delete_at,
             delete_on_stage=delete_on_stage,
-            using_db=connection,
         )

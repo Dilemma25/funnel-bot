@@ -30,7 +30,7 @@ async def startup(ctx):
 
     await init_db()
 
-    ctx["bot"] = SafeBot(settings.bot_token)
+    ctx["bot"] = SafeBot(settings.funnel_bot_token)
     ctx["task_factory"] = TaskFactory()
     ctx["redis"] = init_redis()
 
@@ -195,9 +195,9 @@ async def send_nudge(ctx, telegram_user_id: int):
         # Текст напоминания
         text = """Слушай, ну мы же не просто так это всё затеяли.
 
-        Нам осталось всего одно действие, чтобы пазл сложился.
-        
-        Ты здесь? Продолжим?"""
+Нам осталось всего одно действие, чтобы пазл сложился.
+
+Ты здесь? Продолжим?"""
 
         message = await bot.send_message(
             chat_id=telegram_user_id,
