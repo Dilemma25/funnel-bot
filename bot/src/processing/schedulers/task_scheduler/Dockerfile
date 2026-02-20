@@ -17,6 +17,8 @@ COPY --chown=appuser:appuser . .
 
 ENV PYTHONPATH=/app
 
+RUN chmod +x /app/scripts/task_scheduler/entrypoint.sh
+
 USER appuser
 
-ENTRYPOINT ["/scripts/task_scheduler/entrypoint.sh"]
+ENTRYPOINT ["/app/scripts/task_scheduler/entrypoint.sh"]
