@@ -139,7 +139,7 @@ async def yookassa_webhook(request: Request):
 
                     await TelegramNotifier.notify_user_succeeded_payment(
                         bot=bot,
-                        user_id=user.id,
+                        user_id=user.telegram_id,
                         amount=payment.amount,
                     )
 

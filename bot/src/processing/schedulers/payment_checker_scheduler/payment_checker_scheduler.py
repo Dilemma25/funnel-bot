@@ -62,7 +62,7 @@ class PaymentCheckerScheduler:
 
                             await TelegramNotifier.notify_user_succeeded_payment(
                                 bot=bot,
-                                user_id=user.id,
+                                user_id=user.telegram_id,
                                 amount=float(payment_info.amount.value),
                             )
                             logger.info(f"✅ Платёж {payment.id} успешен")
