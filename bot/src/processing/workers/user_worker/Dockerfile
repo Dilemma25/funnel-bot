@@ -17,4 +17,6 @@ COPY --chown=appuser:appuser . .
 
 ENV PYTHONPATH=/app
 
+USER appuseer
+
 CMD ["poetry", "run", "arq", "src.processing.workers.user_worker.worker_settings.WorkerSettings"]

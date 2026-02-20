@@ -19,4 +19,4 @@ ENV PYTHONPATH=/app
 
 USER appuser
 
-CMD ["/bin/sh", "-c", "printenv | grep -v 'no_proxy' >> /etc/environment && echo '* * * * * . /etc/environment; cd /app && PYTHONPATH=/app /usr/local/bin/poetry run python src/processing/schedulers/task_scheduler/scheduler_runner.py >> /proc/1/fd/1 2>&1' | crontab - && cron -f"]
+ENTRYPOINT ["/scripts/task_scheduler/entrypoint.sh"]
