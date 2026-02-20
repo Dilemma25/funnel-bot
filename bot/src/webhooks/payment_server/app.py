@@ -76,10 +76,18 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+def get_real_ip(request: Request) -> str:
+    x_forwarded_for = request.headers.get("x-forwarded-for")
+    if x_forwarded_for:
+        return x_forwarded_for.split(",")[0].strip()
+    return request.client.host
+
 @app.post("/webhooks/yookassa")
 async def yookassa_webhook(request: Request):
     try:
-        client_ip = request.client.host
+        client_ip = get_real_ip(request)
+
+        logger.warning(f"FINAL IP USED FOR CHECK: {client_ip}")
 
         if not PaymentService.check_ip(client_ip):
             logger.warning(f"⚠️ YooKassa webhook from unknown IP: {client_ip}")
