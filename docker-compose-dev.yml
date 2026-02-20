@@ -10,7 +10,9 @@ services:
       - ./logs:/app/logs
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-    network_mode: host
+    networks:
+      - redis-net
+      - postgres-net
   funnel-task-scheduler:
     build:
       context: ./bot
@@ -22,7 +24,9 @@ services:
       - ./logs:/app/logs
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-    network_mode: host
+    networks:
+      - redis-net
+      - postgres-net
     depends_on:
       funnel-migrator:
         condition: service_completed_successfully
@@ -38,7 +42,9 @@ services:
       - ./logs:/app/logs
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-    network_mode: host
+    networks:
+      - redis-net
+      - postgres-net
     depends_on:
       funnel-migrator:
         condition: service_completed_successfully
@@ -54,7 +60,9 @@ services:
       - ./logs:/app/logs
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-    network_mode: host
+    networks:
+      - redis-net
+      - postgres-net
     depends_on:
       funnel-migrator:
         condition: service_completed_successfully
@@ -71,8 +79,16 @@ services:
       - ./logs:/app/logs
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-    network_mode: host
+    networks:
+      - redis-net
+      - postgres-net
     depends_on:
       funnel-migrator:
         condition: service_completed_successfully
     restart: unless-stopped
+
+networks:
+  redis-net:
+    external: true
+  postgres-net:
+    external: true
