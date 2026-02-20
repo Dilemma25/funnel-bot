@@ -17,4 +17,6 @@ COPY --chown=appuser:appuser . .
 
 ENV PYTHONPATH=/app
 
+USER appuser
+
 CMD ["poetry", "run", "python", "src/processing/schedulers/payment_checker_scheduler/payment_checker_runner.py"]

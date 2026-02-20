@@ -20,5 +20,7 @@ COPY --chown=appuser:appuser . .
 # Устанавливаем PYTHONPATH
 ENV PYTHONPATH=/app
 
+USER appuser
+
 # Запускаем бота
 CMD ["python", "-m", "main"]
