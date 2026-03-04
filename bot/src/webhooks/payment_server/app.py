@@ -1,3 +1,6 @@
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
+
 from src.core.logging_config import setup_logging
 
 logger = setup_logging(__name__, service="webhook_yookassa")
@@ -41,7 +44,11 @@ async def lifespan(fastapi_app: FastAPI):
         logger.info("✅ Database initialized")
 
         # Создание бота
-        bot = SafeBot(settings.funnel_bot_token)
+        bot = SafeBot(token=settings.funnel_bot_token, default=DefaultBotProperties(
+            protect_content=True,
+            parse_mode=ParseMode.MARKDOWN
+        )
+                      )
         fastapi_app.state.bot = bot
         logger.info("✅ Bot initialized")
 

@@ -1,6 +1,11 @@
+from src.core.logging_config import setup_logging
+
+logger = setup_logging(__name__, service="bot")
+
 from src.models import UserState
 from src.views.user_history import create_user_history
 from src.models.user_history import EventTypeEnum
+
 
 async def update_user_state(
     user_id: int,
@@ -31,7 +36,6 @@ async def update_user_state(
     if nudge_sent is not None:
         user_state.nudge_sent = nudge_sent
 
-    # Сохраняем через connection или без него, а так же логируем
     if connection:
         await user_state.save(using_db=connection)
 
@@ -51,3 +55,4 @@ async def update_user_state(
         )
 
     return user_state
+

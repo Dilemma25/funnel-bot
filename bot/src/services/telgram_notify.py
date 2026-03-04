@@ -5,20 +5,19 @@ logger = setup_logging(__name__, service="payments")
 from src.safe_bot import SafeBot
 from src.core.config import settings
 
-#TODO сделать отправку ссылки на курс
+
 class TelegramNotifier:
 
     @staticmethod
     async def notify_user_succeeded_payment(bot: SafeBot, user_id: int, amount: float):
         """
-        Отправляет пользователю сообщение о платеже.
+        Отправляет пользователю сообщение о выполненном платеже.
         """
         try:
             await bot.send_message(
                 chat_id=int(user_id),
                 text=(
                     f"""✅ **Оплата получена!**
-                        Сумма: {amount} ₽
                         Доступ к курсу открыт: {settings.course_bot_link}
                         Приятного обучения! 🎓"""
                 ),

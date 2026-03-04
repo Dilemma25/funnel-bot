@@ -16,7 +16,8 @@ from src.views.user_offer import get_user_offer
 from src.views.user_offer import create_user_offer
 from src.views.tasks import create_task
 from src.models.offer import OfferCodesEnum
-import src.controllers.day_a.messages as messages
+import src.controllers.day_a.messages as messages_day_a
+import src.controllers.day_b.messages as messages_day_b
 from src.core.config import settings
 from src.views.user_state.create_user_state import create_user_state
 from src.views.user_state.update_user_state import update_user_state
@@ -32,8 +33,9 @@ from src.controllers.schemas.keyboard import button
 from src.controllers.schemas.keyboard import keyboard
 
 from datetime import datetime
+from datetime import timedelta
 
-
+#TODO добавить 3 таски на начало второго дня, начало 3го дня и на финал воронки
 @day_a_router.message(CommandStart())
 async def start_day_a(message: Message, state: FSMContext):
     user_id = message.from_user.id
@@ -78,7 +80,7 @@ async def start_day_a(message: Message, state: FSMContext):
     )
 
     message = await message.answer(
-        messages.message_A1,
+        messages_day_a.message_A1,
         parse_mode="Markdown",
         reply_markup=keyboard_A1,
         protect_content=True,
@@ -90,6 +92,7 @@ async def start_day_a(message: Message, state: FSMContext):
             user_id=user_id,
             telegram_message_id=message.message_id,
             tag=SentMessageTagEnum.FUNNEL,
+            stage=DayAStates.A_1_STARTED,
             delete_on_stage=DayBStates.B_1_COLD_SHOWER,
             delete_at=datetime.now(settings.timezone) + SentMessageDeleteTimings.get_long(),
             connection=conn
@@ -119,7 +122,7 @@ async def send_video_lid(callback: CallbackQuery, state: FSMContext):
 
     message = await callback.message.answer_video(
         video=file_id,
-        caption=messages.message_A2,
+        caption=messages_day_a.message_A2,
         protect_content=True,
         parse_mode="Markdown",
     )
@@ -127,6 +130,7 @@ async def send_video_lid(callback: CallbackQuery, state: FSMContext):
     async with in_transaction() as conn:
         await track_message(
             user_id=user_id,
+            stage=DayAStates.A_2_VIDEO_LID_SENT,
             telegram_message_id=message.message_id,
             tag=SentMessageTagEnum.FUNNEL,
             delete_on_stage=DayBStates.B_1_COLD_SHOWER,
@@ -140,7 +144,7 @@ async def send_video_lid(callback: CallbackQuery, state: FSMContext):
         task_a3_type = TaskTypeEnum.SEND_DOCUMENT
         task_a3_payload = DocumentTaskPayload(
             user_id=user_id,
-            text=messages.message_A3,
+            text=messages_day_a.message_A3,
             file_id=task_a3_file_id,
             message_stage=DayAStates.A_3_CHECKLIST_SENT,
             message_tag=SentMessageTagEnum.FUNNEL,
@@ -158,7 +162,7 @@ async def send_video_lid(callback: CallbackQuery, state: FSMContext):
 
         task_a3_kb_payload = MessageTaskPayload(
             user_id=user_id,
-            text=messages.message_A3_kb,
+            text=messages_day_a.message_A3_kb,
             keyboard=keyboard(
                 [
                     button(text="Нашёл(ла) несколько пунктов про себя", callback_data="day_a:a3:found"),
@@ -185,3 +189,27 @@ async def send_video_lid(callback: CallbackQuery, state: FSMContext):
             connection=conn,
         )
 
+        # Создание тасок на
+        # Начало DAY_B
+        # Начало DAY_C
+        # Конец воронки
+
+        task_day_b_started_type = TaskTypeEnum.SEND_MESSAGE
+
+        task_day_b_started_time_run = datetime.now(settings.timezone) + timedelta(hours=24)
+
+        task_day_b_started_payload = MessageTaskPayload(
+            user_id=user_id,
+            text=messages_day_b.message_B2,
+            keyboard=keyboard(
+                [
+                    button(text="Какой полный пакет?", callback_data="day_a:a3:found day_b:b2:full_package"),
+                ],
+            ),
+            message_stage=DayBStates.B_1_COLD_SHOWER,
+            message_tag=SentMessageTagEnum.FUNNEL,
+            delete_on_stage=DayBStates.FINAL,
+            delete_at=task_day_b_started_time_run + SentMessageDeleteTimings.get_long(),
+        )
+
+        await create_task(user_id, task_day_b_started_type, task_day_b_started_payload.model_dump_json(), task_day_b_started_time_run, conn)

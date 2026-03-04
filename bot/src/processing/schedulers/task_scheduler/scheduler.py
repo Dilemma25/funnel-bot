@@ -1,11 +1,12 @@
 import asyncio
 
-from redis.exceptions import LockError
-
 from src.core.logging_config import setup_logging
-from src.views.user_state.get_inactive_users import get_inactive_users
 
 logger = setup_logging(__name__, service="task_scheduler")
+
+from redis.exceptions import LockError
+
+from src.views.user_state.get_inactive_users import get_inactive_users
 
 from arq import create_pool
 from arq.connections import RedisSettings
@@ -35,8 +36,6 @@ class Scheduler:
             logger.info("No ready tasks found")
             return
 
-        logger.info(f"Found {len(ready_tasks)} ready tasks")
-
         for task in ready_tasks:
 
             job = await self.arq_pool.enqueue_job(
@@ -52,8 +51,6 @@ class Scheduler:
                 logger.info(f"Task {task.id} enqueued to arq with job_id={job.job_id}")
             else:
                 logger.warning(f"Task {task.id} already in arq queue (duplicate)")
-
-        logger.info(f"Successfully enqueued {len(ready_tasks)} tasks")
 
     async def _get_expired_message(self):
         messages = await get_expires_messages()
@@ -74,8 +71,6 @@ class Scheduler:
             else:
                 logger.warning(f"Message {message.id} duplicate")
 
-        logger.info(f"Successfully enqueued {len(messages)} messages on delete")
-
     async def _get_inactive_users(self):
         users = await get_inactive_users(datetime.now(timezone.utc))
 
@@ -91,8 +86,6 @@ class Scheduler:
                 logger.info(f"Message {user.telegram_id} enqueued for deletion")
             else:
                 logger.warning(f"Message {user.telegram_id} duplicate")
-
-        logger.info(f"Successfully enqueued {len(users)} messages on delete")
 
     async def push_tasks(self):
         """
@@ -142,13 +135,10 @@ class Scheduler:
                     return_exceptions=True
                 )
 
-                # Логируем ошибки (если были)
                 for i, result in enumerate(results):
                     if isinstance(result, Exception):
                         task_names = ["ready_tasks", "expired_messages", "inactive_users"]
                         logger.error(f"❌ Error in {task_names[i]}: {result}", exc_info=result)
-
-                logger.info("✅ Scheduler cycle completed")
 
         except LockError as e:
             logger.warning(f"⚠️ Failed to acquire lock: {e}")
@@ -157,7 +147,6 @@ class Scheduler:
             logger.error(f"💥 Critical error in push_tasks: {e}", exc_info=True)
 
         finally:
-            # Закрываем ARQ pool
             if arq_pool:
                 try:
                     await arq_pool.close()
@@ -165,7 +154,6 @@ class Scheduler:
                 except Exception as e:
                     logger.error(f"Error closing ARQ pool: {e}")
 
-            # Закрываем Redis client
             if redis_client:
                 try:
                     await redis_client.close()

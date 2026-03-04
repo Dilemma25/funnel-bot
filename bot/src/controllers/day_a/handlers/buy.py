@@ -1,4 +1,7 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
+
+from src.core.logging_config import setup_logging
+logger = setup_logging(__name__, service="bot")
 
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
@@ -41,7 +44,7 @@ async def handle_buy(callback: CallbackQuery, state: FSMContext):
         payload=payload,
     )
 
-    payment_lock_until_ts = await state.get_value("payment_lock_until_ts")
+    # payment_lock_until_ts = await state.get_value("payment_lock_until_ts")
 
     # Получаем актуальную цену
     current_price = await get_current_price(user_id, OfferCodesEnum.SMART_WALLET)
@@ -72,7 +75,9 @@ async def handle_buy(callback: CallbackQuery, state: FSMContext):
             description="Курс 'Метод умного кошелька'"
         )
 
-        payment_lock_until_ts = None
+        if not payment_data:
+            logger.critical("Ошибка создания платежа")
+        # payment_lock_until_ts = None
 
         payment_id = payment_data["payment_id"]
         payment_url = payment_data["confirmation_url"]
@@ -89,22 +94,22 @@ async def handle_buy(callback: CallbackQuery, state: FSMContext):
         payment_id = pending_payment.id
         payment_url = pending_payment.yookassa_payment_url
 
-    payment_lock_until = datetime.fromtimestamp(payment_lock_until_ts, timezone.utc) if payment_lock_until_ts else None
+    # payment_lock_until = datetime.fromtimestamp(payment_lock_until_ts, timezone.utc) if payment_lock_until_ts else None
 
-    if payment_lock_until and payment_lock_until > datetime.now(timezone.utc):
-        await callback.answer(
-            text="Сообщение для перехода к оплате уже создано",
-            show_alert=False
-        )
+    # if payment_lock_until and payment_lock_until > datetime.now(timezone.utc):
+    #     await callback.answer(
+    #         text="Сообщение для перехода к оплате уже создано",
+    #         show_alert=False
+    #     )
+    #
+    #     return
 
-        return
-
-    elif not payment_lock_until or payment_lock_until < datetime.now(timezone.utc):
-        until_timestamp = int((datetime.now(timezone.utc) + timedelta(minutes=15)).timestamp())
-
-        await state.update_data(
-            payment_lock_until_ts=until_timestamp,
-        )
+    # elif not payment_lock_until or payment_lock_until < datetime.now(timezone.utc):
+    #     until_timestamp = int((datetime.now(timezone.utc) + timedelta(minutes=15)).timestamp())
+    #
+    #     await state.update_data(
+    #         payment_lock_until_ts=until_timestamp,
+    #     )
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="💳 Оплатить", url=payment_url)],

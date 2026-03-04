@@ -12,8 +12,7 @@ RUN mkdir -p /app/logs
 
 COPY . .
 
-RUN chmod +x /app/scripts/task_scheduler/entrypoint.sh && \
-    crontab /app/scripts/task_scheduler/crontab
+RUN chmod +x /app/scripts/task_scheduler/entrypoint.sh
 
 ENV PYTHONPATH=/app
 

@@ -32,4 +32,5 @@ async def start_app() -> None:
         parse_mode=ParseMode.MARKDOWN
         )
     )
+
     await dispatcher.start_polling(bot)

@@ -6,6 +6,9 @@ from abc import abstractmethod
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.types import InlineKeyboardButton
 
+from src.views.user_state.update_user_state import update_user_state
+
+
 class BaseMessagingTask(BaseTask):
     """Базовый класс для задач отправки сообщений"""
 
@@ -55,6 +58,19 @@ class BaseMessagingTask(BaseTask):
                 buttons.append(button_row)
 
         return InlineKeyboardMarkup(inline_keyboard=buttons) if buttons else None
+
+    async def update_user_state(self, connection):
+
+        new_stage = self.payload.get("message_stage")
+
+        if new_stage:
+
+            await update_user_state(
+                user_id=self.payload["user_id"],
+                offer_code=self.payload["offer_code"],
+                state=new_stage,
+                connection=connection
+            )
 
     @abstractmethod
     async def execute(self):

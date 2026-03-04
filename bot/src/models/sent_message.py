@@ -15,18 +15,18 @@ class SentMessageDeleteTimings:
 
     @staticmethod
     def get_default() -> timedelta:
-        """12 часов (prod) / 4 минуты (dev)"""
-        return timedelta(minutes=4) if settings.is_dev else timedelta(hours=12)
+        """12 часов (prod) / 10 минуты (dev)"""
+        return timedelta(minutes=10) if settings.is_dev else timedelta(hours=12)
 
     @staticmethod
     def get_short() -> timedelta:
-        """6 часов (prod) / 4 минуты (dev)"""
-        return timedelta(minutes=4) if settings.is_dev else timedelta(hours=6)
+        """6 часов (prod) / 10 минуты (dev)"""
+        return timedelta(minutes=10) if settings.is_dev else timedelta(hours=6)
 
     @staticmethod
     def get_long() -> timedelta:
-        """24 часа (prod) / 4 минуты (dev)"""
-        return timedelta(minutes=4) if settings.is_dev else timedelta(hours=24)
+        """24 часа (prod) / 10 минуты (dev)"""
+        return timedelta(minutes=10) if settings.is_dev else timedelta(hours=24)
 
 
 class SentMessage(Model):

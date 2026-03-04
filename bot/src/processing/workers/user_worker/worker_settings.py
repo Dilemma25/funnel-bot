@@ -156,6 +156,8 @@ async def delete_message(
 
         logger.info(f"✅ Message {message_id} marked as deleted")
 
+        await asyncio.sleep(0.25)
+
     except Exception as e:
         logger.error(f"❌ Error deleting message {message_id}: {e}", exc_info=True)
 
