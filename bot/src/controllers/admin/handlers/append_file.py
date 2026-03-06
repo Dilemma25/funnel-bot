@@ -1,4 +1,5 @@
 from aiogram import F
+from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from aiogram.types import CallbackQuery
@@ -68,6 +69,7 @@ async def offer_selected(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
         f"✅ Оффер выбран: <b>{offer.code}</b>\n\n"
         "📁 Теперь отправь файл (видео, PDF, изображение или видео-кружок)",
+        "Чтобы прекратить добавлять файлы, введите команду /close",
         parse_mode="HTML"
     )
 
@@ -136,6 +138,11 @@ async def receive_file_code(message: Message, state: FSMContext):
     except Exception as e:
         await message.answer(f"❌ Ошибка: {str(e)}")
 
+    await state.set_state(AdminStates.waiting_for_file)
+
+
+@admin_router.message(Command("close"))
+async def handle_close(callback: CallbackQuery, state: FSMContext):
     await state.clear()
 
 

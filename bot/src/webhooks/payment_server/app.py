@@ -1,7 +1,10 @@
+import asyncio
+
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
 from src.core.logging_config import setup_logging
+from src.views.tasks.cancel_user_tasks import cancel_user_tasks
 
 logger = setup_logging(__name__, service="webhook_yookassa")
 
@@ -156,6 +159,21 @@ async def yookassa_webhook(request: Request):
                         bot=bot,
                         user_id=user.telegram_id,
                         amount=payment.amount,
+                        user_email=user.email
+                    )
+
+                    await asyncio.sleep(0.2)
+
+                    course_name = payment_info.description or "Курс 'Метод умного кошелька'"
+
+                    await TelegramNotifier.notify_course_access(
+                        bot=bot,
+                        user_id=user.telegram_id,
+                        course_name=course_name
+                    )
+
+                    await cancel_user_tasks(
+                        user_id=user.telegram_id,
                     )
 
                 elif payment_status == "canceled":

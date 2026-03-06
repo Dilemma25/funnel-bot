@@ -33,7 +33,6 @@ from src.controllers.schemas.keyboard import button
 from src.controllers.schemas.keyboard import keyboard
 
 from datetime import datetime
-from datetime import timedelta
 
 #TODO добавить 3 таски на начало второго дня, начало 3го дня и на финал воронки
 @day_a_router.message(CommandStart())
@@ -48,6 +47,10 @@ async def start_day_a(message: Message, state: FSMContext):
         offer_code=OfferCodesEnum.SMART_WALLET
     )
 
+    if settings.is_dev:
+        await message.answer(
+            text="Бот запущен в режиме разработки"
+        )
 
     if user_offer and not settings.is_dev:
 
@@ -105,6 +108,33 @@ async def start_day_a(message: Message, state: FSMContext):
             state=DayAStates.A_1_STARTED,
             connection=conn
         )
+
+        # Создание тасок на
+        # Начало DAY_B
+        # Начало DAY_C
+        # Конец воронки
+
+        # Начало DAY_B
+        task_day_b_started_type = TaskTypeEnum.SEND_MESSAGE
+
+        task_day_b_started_time_run = datetime.now(settings.timezone) + Timings.DAY_B_START
+
+        task_day_b_started_payload = MessageTaskPayload(
+            user_id=user_id,
+            text=messages_day_b.message_B2,
+            keyboard=keyboard(
+                [
+                    button(text="Какой полный пакет?", callback_data="day_b:b2:full_package"),
+                ],
+            ),
+            message_stage=DayBStates.B_1_COLD_SHOWER,
+            message_tag=SentMessageTagEnum.FUNNEL,
+            delete_on_stage=DayBStates.FINAL,
+            delete_at=task_day_b_started_time_run + SentMessageDeleteTimings.get_long(),
+        )
+
+        await create_task(user_id, task_day_b_started_type, task_day_b_started_payload.model_dump_json(),
+                          task_day_b_started_time_run, conn)
 
 
 @day_a_router.callback_query(F.data == "day_a:a1:start")
@@ -189,27 +219,3 @@ async def send_video_lid(callback: CallbackQuery, state: FSMContext):
             connection=conn,
         )
 
-        # Создание тасок на
-        # Начало DAY_B
-        # Начало DAY_C
-        # Конец воронки
-
-        task_day_b_started_type = TaskTypeEnum.SEND_MESSAGE
-
-        task_day_b_started_time_run = datetime.now(settings.timezone) + timedelta(hours=24)
-
-        task_day_b_started_payload = MessageTaskPayload(
-            user_id=user_id,
-            text=messages_day_b.message_B2,
-            keyboard=keyboard(
-                [
-                    button(text="Какой полный пакет?", callback_data="day_a:a3:found day_b:b2:full_package"),
-                ],
-            ),
-            message_stage=DayBStates.B_1_COLD_SHOWER,
-            message_tag=SentMessageTagEnum.FUNNEL,
-            delete_on_stage=DayBStates.FINAL,
-            delete_at=task_day_b_started_time_run + SentMessageDeleteTimings.get_long(),
-        )
-
-        await create_task(user_id, task_day_b_started_type, task_day_b_started_payload.model_dump_json(), task_day_b_started_time_run, conn)

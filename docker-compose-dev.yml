@@ -3,7 +3,9 @@ services:
     build:
       context: ./bot
       dockerfile: ./migrations/Dockerfile
-    container_name: funnel-migrator 
+    container_name: funnel-migrator
+    environment:
+      - SERVICE_NAME=migrator
     env_file: .env.dev
     volumes:
       - ./bot:/app
@@ -18,6 +20,8 @@ services:
       context: ./bot
       dockerfile: ./src/processing/schedulers/task_scheduler/Dockerfile
     container_name: funnel-task-scheduler
+    environment:
+      - SERVICE_NAME=task_scheduler
     env_file: .env.dev
     volumes:
       - ./bot:/app
@@ -35,7 +39,9 @@ services:
     build:
       context: ./bot
       dockerfile: ./src/processing/schedulers/payment_checker_scheduler/Dockerfile
-    container_name: funnel-payment_checker_schedule
+    container_name: funnel-payment_checker_scheduler
+    environment:
+      - SERVICE_NAME=payment-scheduler
     env_file: .env.dev
     volumes:
       - ./bot:/app
@@ -54,6 +60,8 @@ services:
       context: ./bot
       dockerfile: ./src/processing/workers/user_worker/Dockerfile
     container_name: user-consumer
+    environment:
+      - SERVICE_NAME=user_worker
     env_file: .env.dev
     volumes:
       - ./bot:/app
@@ -73,6 +81,29 @@ services:
       context: ./bot
       dockerfile: Dockerfile
     container_name: funnel-bot
+    environment:
+      - SERVICE_NAME=funnel_bot
+    env_file: .env.dev
+    volumes:
+      - ./bot:/app
+      - ./logs:/app/logs
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - redis-net
+      - postgres-net
+    depends_on:
+      funnel-migrator:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  funnel-course-bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    container_name: funnel-course-bot
+    environment:
+      - SERVICE_NAME=course_bot
     env_file: .env.dev
     volumes:
       - ./bot:/app

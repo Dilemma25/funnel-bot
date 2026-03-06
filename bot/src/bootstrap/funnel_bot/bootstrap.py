@@ -9,7 +9,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from tortoise import run_async
 from .setap_routers import setup_routers
-from ..middlewares.error_handler import ErrorHandlerMiddleware
+from src.middlewares.error_handler import ErrorHandlerMiddleware
 from aiogram.fsm.storage.redis import RedisStorage
 
 

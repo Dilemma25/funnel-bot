@@ -26,27 +26,53 @@ class PaymentService:
             return False
 
     @staticmethod
-    async def create_payment(user_id, amount, description):
+    async def create_payment(
+            user_id,
+            user_email,
+            amount,
+            description
+    ):
         """Создать платеж (работает и в test, и в prod)"""
 
         idempotence_key = str(uuid.uuid4())
         try:
             payment = Payment.create({
                 "amount": {
-                    "value": f"{amount}",
+                    "value": f"{amount:.2f}",
                     "currency": "RUB"
                 },
                 "confirmation": {
                     "type": "redirect",
-                    "return_url": "https://t.me/@ToDo25Bot"
+                    "return_url": "https://t.me/ToDo25Bot"
                 },
                 "capture": True,
                 "test": settings.is_dev,  # ← ЯВНО указываем тестовый режим (опционально)
                 "description": description,
                 "metadata": {
-                    "user_id": user_id,
+                    "user_id": str(user_id),
                     "source": "telegram_bot"
                 },
+                "receipt": {
+                    "customer": {
+                        "email": user_email
+                    },
+                    "items": [
+                        {
+                            "description": description,
+                            "quantity": "1.00",  # ← СТРОКА!
+                            "amount": {
+                                "value": f"{amount:.2f}",
+                                "currency": "RUB"
+                            },
+                            #TODO узнать какое налогообложение
+                            # если на УСН (Упрощённая система налогообложения) то vat_code = 1
+                            # если на ОСН (Общая система налогообложения) то vat_code = 4
+                            "vat_code": 1,  # ← Без НДС (если ты на УСН)
+                            "payment_mode": "full_prepayment",
+                            "payment_subject": "service"
+                        }
+                    ]
+                }
             }, idempotence_key)
 
         except Exception as e:

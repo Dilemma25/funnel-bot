@@ -1,9 +1,11 @@
 from src.core.logging_config import setup_logging
+
 logger = setup_logging(__name__, service="payment_checker_scheduler")
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import timedelta
 from datetime import datetime
+from tortoise.transactions import in_transaction
 import asyncio
 
 from src.models.payment import PaymentStatusEnum
@@ -11,11 +13,8 @@ from src.safe_bot import SafeBot
 from src.services.payment import PaymentService
 from src.services.telgram_notify import TelegramNotifier
 from src.views.user_offer_payment import mark_payment, get_pending_payments
-from tortoise.transactions import in_transaction
-
+from src.views.tasks.cancel_user_tasks import cancel_user_tasks
 from src.core.config import settings
-
-
 
 
 class PaymentCheckerScheduler:
@@ -64,8 +63,23 @@ class PaymentCheckerScheduler:
                                 bot=bot,
                                 user_id=user.telegram_id,
                                 amount=float(payment_info.amount.value),
+                                user_email=user.email,
                             )
                             logger.info(f"✅ Платёж {payment.id} успешен")
+
+                            await asyncio.sleep(0.2)
+
+                            course_name = payment_info.description or "Курс 'Метод умного кошелька'"
+
+                            await TelegramNotifier.notify_course_access(
+                                bot=bot,
+                                user_id=user.telegram_id,
+                                course_name=course_name
+                            )
+
+                            await cancel_user_tasks(
+                                user_id=user.telegram_id,
+                            )
 
                             await bot.session.close()
 
@@ -77,7 +91,7 @@ class PaymentCheckerScheduler:
                             )
                             logger.info(f"❌ Платёж {payment.id} отменён/провален")
 
-                    await asyncio.sleep(0.5)  # 500ms между запросами
+                    await asyncio.sleep(0.25)  # 500ms между запросами
 
                 except Exception as e:
                     logger.error(f"Ошибка проверки платежа {payment.id}: {e}")

@@ -1,14 +1,13 @@
+from src.core.logging_config import setup_logging
+logger = setup_logging(__name__)
+
 from src.core.config import settings
 from src.models import UserOffer
 from datetime import datetime, timedelta
-import logging
 
 from src.models.offer import OfferCodesEnum
 from src.models.payment import PaymentStatusEnum
 from src.views.user_offer_payment import get_payment_with_status
-
-
-logger = logging.getLogger(__name__)
 
 
 async def set_discount(

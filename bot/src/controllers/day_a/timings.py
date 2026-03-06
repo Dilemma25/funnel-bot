@@ -36,8 +36,11 @@ class DayATimings:
     #Возврат к оферу после FAQ
     A9_2_TO_A9_2_1 = timedelta(seconds=DEV_DELAY if IS_DEV else 30)
 
+    DAY_B_START = timedelta(seconds=10 * 60 * 60 if IS_DEV else 24 * 60 * 60)
 
+    DAY_C_START = timedelta(seconds=DEV_DELAY if IS_DEV else 48 * 60 * 60)
 
+    FUNNEL_FINAL = timedelta(seconds=DEV_DELAY if IS_DEV else 72 * 60 * 60)
 
 class Timings:
     """Человекопонятные названия таймеров"""
@@ -55,7 +58,11 @@ class Timings:
 
     DISCOUNT_TIMER = DayATimings.DISCOUNT_TIMER
 
+    DAY_B_START = DayATimings.DAY_B_START
 
+    DAY_C_START = DayATimings.DAY_C_START
+
+    FUNNEL_FINAL = DayATimings.FUNNEL_FINAL
 # def print_timings():
 #     """Выводит все таймеры (для отладки)"""
 #     mode = "DEV" if IS_DEV else "PRODUCTION"

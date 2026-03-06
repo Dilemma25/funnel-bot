@@ -1,5 +1,5 @@
 from src.core.logging_config import setup_logging
-logger = setup_logging(__name__, service="funnel_bot")
+logger = setup_logging(__name__, service="course_bot")
 
 
 from aiogram import Dispatcher
@@ -19,7 +19,7 @@ from src.core.database import close_db
 from src.core.database import init_db
 from src.safe_bot import SafeBot
 from src.core.config import settings
-from src.bootstrap.funnel_bot.setup_dispatcher import setup_dispatcher
+from src.bootstrap.course_bot.setup_dispatcher import setup_dispatcher
 
 from typing import Optional
 
@@ -39,7 +39,7 @@ async def lifespan(fastapi_app: FastAPI):
         logger.info("✅ Database initialized")
 
         # Создание бота
-        bot = SafeBot(token=settings.funnel_bot_token, default=DefaultBotProperties(
+        bot = SafeBot(token=settings.course_bot_token, default=DefaultBotProperties(
             protect_content=True,
             parse_mode=ParseMode.MARKDOWN
             )
@@ -48,11 +48,11 @@ async def lifespan(fastapi_app: FastAPI):
         logger.info("✅ Bot initialized")
 
         # Установка webhook
-        webhook_url = f"{settings.funnel_bot_webhook_url}/webhooks/telegram"
+        webhook_url = f"{settings.course_bot_webhook_url}/webhooks/telegram"
 
         await bot.set_webhook(
             url=webhook_url,
-            secret_token=settings.funnel_bot_webhook_secret_token,
+            secret_token=settings.course_bot_webhook_secret_token,
             drop_pending_updates=False,
             allowed_updates=["message", "callback_query"]
         )
@@ -89,7 +89,7 @@ async def lifespan(fastapi_app: FastAPI):
 
 # Создание приложения
 app = FastAPI(
-    title="Funnel Bot Webhook Server",
+    title="Course Bot Webhook Server",
     description="Telegram webhook сервер для воронки продаж",
     version="1.0.0",
     lifespan=lifespan,
@@ -108,7 +108,7 @@ async def telegram_webhook(
 ):
     try:
 
-        if x_telegram_bot_api_secret_token != settings.funnel_bot_webhook_secret_token:
+        if x_telegram_bot_api_secret_token != settings.course_bot_webhook_secret_token:
             logger.warning(
                 f"⚠️ Invalid secret token: {x_telegram_bot_api_secret_token}"
             )

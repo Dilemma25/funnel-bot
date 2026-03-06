@@ -1,6 +1,10 @@
 from datetime import datetime
 
+from aiogram.filters import Command
+
 from src.core.logging_config import setup_logging
+from src.views.offer import get_offer_by_code
+
 logger = setup_logging(__name__, service="bot")
 
 from aiogram.types import CallbackQuery
@@ -8,10 +12,12 @@ from aiogram.fsm.context import FSMContext
 from aiogram import F
 from aiogram.types import InlineKeyboardButton
 from aiogram.types import InlineKeyboardMarkup
+from aiogram.types import Message
 from tortoise.transactions import in_transaction
 
 from src.models.payment import PaymentStatusEnum
-from src.models.sent_message import SentMessageTagEnum, SentMessageDeleteTimings
+from src.models.sent_message import SentMessageTagEnum
+from src.models.sent_message import SentMessageDeleteTimings
 from src.models.user_history import EventTypeEnum
 from src.views.sent_message import track_message
 from src.views.user_history import create_user_history
@@ -25,6 +31,8 @@ from src.views.user_offer_payment import get_payment_with_status
 from src.controllers.user_states import DayAStates
 from src.core.config import settings
 from src.controllers.common_states import CommonStates
+from src.states.buy import BuyStates
+from src.views.user import get_user
 
 
 @day_a_router.callback_query(F.data.contains(":buy"))
@@ -32,6 +40,16 @@ async def handle_buy(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
     user_id = callback.from_user.id
+
+    existing_successful_payment = await get_payment_with_status(
+        user_id=user_id,
+        offer_code=OfferCodesEnum.SMART_WALLET,
+        payment_status=PaymentStatusEnum.SUCCESSFUL
+    )
+
+    if existing_successful_payment:
+        await callback.message.answer("✅ Ты уже купил этот курс!")
+        return
 
     payload = {
         "clicked_button": f"{callback.data.split(":")[1]}: Оплата({callback.data.split(":")[1].capitalize().replace("_", ".")})"
@@ -44,21 +62,74 @@ async def handle_buy(callback: CallbackQuery, state: FSMContext):
         payload=payload,
     )
 
-    # payment_lock_until_ts = await state.get_value("payment_lock_until_ts")
+    user = await get_user(user_id)
 
-    # Получаем актуальную цену
-    current_price = await get_current_price(user_id, OfferCodesEnum.SMART_WALLET)
+    if user.email is None:
+        # Запрашиваем email
+        await callback.message.answer(
+            "📧 **Укажите email для получения чека**\n\n"
+                "После успешной оплаты на указанный адрес будет отправлен официальный чек от ЮKassa.\n\n"
+                "Пример: `user@example.com`",
+                parse_mode="Markdown"
+        )
 
-    #TODO Сделать что бы бот выл впринципе не активен на команды после оплаты, тк он должен перейти уже к курсу
-    existing_successful_payment = await get_payment_with_status(
-        user_id=user_id,
-        offer_code=OfferCodesEnum.SMART_WALLET,
-        payment_status=PaymentStatusEnum.SUCCESSFUL
+        await state.set_state(BuyStates.waiting_for_email)
+        return
+
+    await create_and_send_payment(
+        callback=callback,
+        user_email=user.email,
+        user_id = user_id,
     )
 
-    if existing_successful_payment:
-        await callback.message.answer("✅ Ты уже купил этот курс!")
+
+@day_a_router.message(BuyStates.waiting_for_email, F.text)
+async def receive_email(message: Message, state: FSMContext):
+    """Получаем email от юзера"""
+
+    user_id = message.from_user.id
+    email = message.text.strip()
+
+    # Валидация email
+    import re
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+
+    if not re.match(email_pattern, email):
+        await message.answer(
+            "❌ Неправильный формат email.\n\n"
+            "Попробуй ещё раз или введи /close для отмены оплаты"
+        )
         return
+
+    user = await get_user(user_id=user_id)
+    user.email = email
+    await user.save()
+
+    await message.answer(f"✅ Email сохранён: `{email}`", parse_mode="Markdown")
+
+    await state.clear()
+
+    await create_and_send_payment(
+        user_email=user.email,
+        user_id=user_id,
+        message=message
+    )
+
+
+@day_a_router.message(BuyStates.waiting_for_email, Command("close"))
+async def handle_close(message: Message, state: FSMContext):
+    await message.answer("Отмена платежа")
+
+    await state.clear()
+
+async def create_and_send_payment(
+    user_id: int,
+    user_email: str,
+    callback: CallbackQuery=None,
+    message: Message=None,
+):
+    # Получаем актуальную цену
+    current_price = await get_current_price(user_id, OfferCodesEnum.SMART_WALLET)
 
     pending_payment = await get_payment_with_status(
         user_id=user_id,
@@ -68,16 +139,23 @@ async def handle_buy(callback: CallbackQuery, state: FSMContext):
     )
 
     if not pending_payment or pending_payment.amount != current_price:
+
+        offer = await get_offer_by_code(
+            code=OfferCodesEnum.SMART_WALLET,
+        )
         # Создаем платеж в ЮKassa
         payment_data = await PaymentService.create_payment(
             user_id=user_id,
+            user_email=user_email,
             amount=current_price,
-            description="Курс 'Метод умного кошелька'"
+            description=offer.title
         )
 
         if not payment_data:
             logger.critical("Ошибка создания платежа")
-        # payment_lock_until_ts = None
+            target = callback.message if callback else message
+            await target.answer("❌ Не удалось создать платёж. Попробуй позже.")
+            return
 
         payment_id = payment_data["payment_id"]
         payment_url = payment_data["confirmation_url"]
@@ -91,33 +169,21 @@ async def handle_buy(callback: CallbackQuery, state: FSMContext):
         )
 
     else:
-        payment_id = pending_payment.id
         payment_url = pending_payment.yookassa_payment_url
-
-    # payment_lock_until = datetime.fromtimestamp(payment_lock_until_ts, timezone.utc) if payment_lock_until_ts else None
-
-    # if payment_lock_until and payment_lock_until > datetime.now(timezone.utc):
-    #     await callback.answer(
-    #         text="Сообщение для перехода к оплате уже создано",
-    #         show_alert=False
-    #     )
-    #
-    #     return
-
-    # elif not payment_lock_until or payment_lock_until < datetime.now(timezone.utc):
-    #     until_timestamp = int((datetime.now(timezone.utc) + timedelta(minutes=15)).timestamp())
-    #
-    #     await state.update_data(
-    #         payment_lock_until_ts=until_timestamp,
-    #     )
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="💳 Оплатить", url=payment_url)],
     ])
 
-    message = await callback.message.answer(
+    target = callback.message if callback else message
+
+    #TODO расширить сообщение
+    sent_message = await target.answer(
         text=f"💰 К оплате: {current_price} ₽\n\n"
-             f"Нажми кнопку ниже для перехода к оплате.\n",
+             f"📧 Чек будет отправлен на: `{user_email}`\n\n"
+             f"Нажми кнопку ниже для перехода к оплате.\n\n"
+             f"Если платеж не будет подтвержден в течение 20 минут"
+             f"Введите команду /help и напишите обращение в поддержку",
         reply_markup=keyboard
     )
 
@@ -125,7 +191,7 @@ async def handle_buy(callback: CallbackQuery, state: FSMContext):
         await track_message(
             user_id=user_id,
             tag=SentMessageTagEnum.FUNNEL,
-            telegram_message_id=message.message_id,
+            telegram_message_id=sent_message.message_id,
             stage=DayAStates.PAYMENT_PROCESS,
 
             delete_at=datetime.now(settings.timezone) + SentMessageDeleteTimings.get_short(),
