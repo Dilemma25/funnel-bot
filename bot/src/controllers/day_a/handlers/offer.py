@@ -1,4 +1,3 @@
-from src.controllers.common_states import CommonStates
 from src.core.logging_config import setup_logging
 from src.models.user_history import EventTypeEnum
 from src.views.sent_message import track_message
@@ -127,7 +126,7 @@ async def handle_a7_next(callback: CallbackQuery, state: FSMContext):
                 ),
 
                 message_tag = SentMessageTagEnum.FUNNEL,
-                message_stage = CommonStates.DISCOUNT_EXPIRES,
+                message_stage = DayAStates.FINAL,
                 delete_at = datetime.now(settings.timezone) + SentMessageDeleteTimings.get_default(),
                 delete_on_stage = DayBStates.B_1_COLD_SHOWER,
             )

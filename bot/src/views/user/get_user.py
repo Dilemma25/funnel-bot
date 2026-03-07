@@ -3,7 +3,7 @@ from src.models import User
 
 async def get_user(user_id: int, connection=None):
 
-    query = User.filter(id=user_id)
+    query = User.filter(telegram_id=user_id)
 
     if connection:
         user = await query.using_db(connection).first()

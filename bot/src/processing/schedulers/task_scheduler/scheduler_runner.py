@@ -8,7 +8,7 @@ from src.core.database import init_db
 
 from src.processing.schedulers.task_scheduler.scheduler import Scheduler
 
-
+# TODO добавить лок на редис
 async def main():
     logger.info("Scheduler: запуск")
     is_db_init = False

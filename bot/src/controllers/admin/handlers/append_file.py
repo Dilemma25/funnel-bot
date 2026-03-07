@@ -67,14 +67,18 @@ async def offer_selected(callback: CallbackQuery, state: FSMContext):
     )
 
     await callback.message.answer(
-        f"✅ Оффер выбран: <b>{offer.code}</b>\n\n"
-        "📁 Теперь отправь файл (видео, PDF, изображение или видео-кружок)",
-        "Чтобы прекратить добавлять файлы, введите команду /close",
+        text=(f"✅ Оффер выбран: <b>{offer.code}</b>\n\n"
+        "📁 Теперь отправь файл (видео, PDF, изображение или видео-кружок)"
+        "Чтобы прекратить добавлять файлы, введите команду /close"
+              ),
         parse_mode="HTML"
     )
 
     await state.set_state(AdminStates.waiting_for_file)
 
+@admin_router.message(Command("close"))
+async def handle_close(message: Message, state: FSMContext):
+    await state.clear()
 
 @admin_router.message(AdminStates.waiting_for_file)
 async def receive_file(message: Message, state: FSMContext):
@@ -139,11 +143,6 @@ async def receive_file_code(message: Message, state: FSMContext):
         await message.answer(f"❌ Ошибка: {str(e)}")
 
     await state.set_state(AdminStates.waiting_for_file)
-
-
-@admin_router.message(Command("close"))
-async def handle_close(callback: CallbackQuery, state: FSMContext):
-    await state.clear()
 
 
 @admin_router.callback_query(F.data == "admin_back")

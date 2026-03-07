@@ -2,6 +2,8 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y cron && rm -rf /var/lib/apt/lists/*
+
 COPY pyproject.toml poetry.lock* ./
 
 RUN pip install poetry && poetry install --no-root
@@ -10,6 +12,8 @@ RUN mkdir -p /app/logs
 
 COPY . .
 
+RUN chmod +x /app/scripts/payment_scheduler/entrypoint.sh
+
 ENV PYTHONPATH=/app
 
-CMD ["poetry", "run", "python", "src/processing/schedulers/payment_checker_scheduler/payment_checker_runner.py"]
+ENTRYPOINT ["sh", "/app/scripts/payment_scheduler/entrypoint.sh"]

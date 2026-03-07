@@ -3,32 +3,28 @@ import asyncio
 from src.core.logging_config import setup_logging
 logger = setup_logging(__name__, service="payment_checker_scheduler")
 
-from src.core.database import init_db
-from src.core.database import close_db
-
+from src.core.database import init_db, close_db
 from src.processing.schedulers.payment_checker_scheduler.payment_checker_scheduler import PaymentCheckerScheduler
-from tortoise import run_async
 
-
-
-
+# TODO добавить лок на редис
 async def main():
-    run_async(init_db())
-    logger.info("PaymentCheckerScheduler: инициализирован")
-
-    checker = PaymentCheckerScheduler()
-    checker.start()
-    logger.info("PaymentCheckerScheduler: запущен")
+    logger.info("Payment checker: starting")
+    is_db_init = False
 
     try:
-        while True:
-            await asyncio.sleep(1)
-    except KeyboardInterrupt:
-        logger.info("Получен сигнал завершения...")
+        await init_db()
+        is_db_init = True
+
+        scheduler = PaymentCheckerScheduler()
+        await scheduler.check_pending_payments()
+
+    except Exception as e:
+        logger.error(f"Error in payment checker: {e}", exc_info=True)
+
     finally:
-        checker.shutdown()
-        await close_db()
-        logger.info("PaymentCheckerScheduler: завершён")
+        logger.info("Payment checker: completed")
+        if is_db_init:
+            await close_db()
 
 
 if __name__ == "__main__":

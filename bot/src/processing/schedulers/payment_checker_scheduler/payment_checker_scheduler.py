@@ -18,8 +18,8 @@ from src.core.config import settings
 
 
 class PaymentCheckerScheduler:
-    def __init__(self):
-        self.scheduler = AsyncIOScheduler()
+    # def __init__(self):
+    #     self.scheduler = AsyncIOScheduler()
 
     async def check_pending_payments(self):
         """Проверяет pending платежи батчами"""
@@ -100,20 +100,22 @@ class PaymentCheckerScheduler:
         except Exception as e:
             logger.error(f"Критическая ошибка в check_pending_payments: {e}", exc_info=True)
 
-    def start(self):
-        """Запуск scheduler'а"""
-        self.scheduler.add_job(
-            self.check_pending_payments,
-            'interval',
-            minutes=1,
-            id='payment_checker_scheduler',
-            replace_existing=True
-        )
-
-        self.scheduler.start()
-        logger.info("✅ Payment checker запущен (интервал: 1 минута)")
-
-    def shutdown(self):
-        """Остановка scheduler'а"""
-        self.scheduler.shutdown()
-        logger.info("⏹ Payment checker остановлен")
+    # def start(self):
+    #     """Запуск scheduler'а"""
+    #     self.scheduler.add_job(
+    #         self.check_pending_payments,
+    #         'interval',
+    #         minutes=1,
+    #         id='payment_checker_scheduler',
+    #         replace_existing=True,
+    #         max_instances=3,
+    #         coalesce=True
+    #     )
+    #
+    #     self.scheduler.start()
+    #     logger.info("✅ Payment checker запущен (интервал: 1 минута)")
+    #
+    # def shutdown(self):
+    #     """Остановка scheduler'а"""
+    #     self.scheduler.shutdown()
+    #     logger.info("⏹ Payment checker остановлен")

@@ -1,0 +1,1 @@
+* * * * * cd /app && PYTHONPATH=/app /usr/local/bin/poetry run python src/processing/schedulers/payment_checker_scheduler/payment_checker_runner.py

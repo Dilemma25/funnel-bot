@@ -53,8 +53,8 @@ class TelegramNotifier:
         try:
 
             text = (
-                f"🎓 **Доступ к курсу открыт!**\n\n"
-                f"📚 **Курс:** *{course_name}*\n"
+                f"🎓 <b>Доступ к курсу открыт!</b>\n\n"
+                f"📚 <b>Курс:</b> <i>{course_name}</i>\n"
                 f"Переходи в бот с курсом: {settings.course_bot_link}\n\n"
                 f"Приятного обучения! 🙌"
             )
@@ -62,7 +62,7 @@ class TelegramNotifier:
             await bot.send_message(
                 chat_id=int(user_id),
                 text=text,
-                parse_mode="Markdown",
+                parse_mode="HTML",
             )
 
             logger.info(f"📨 Course access notification sent to user {user_id}")

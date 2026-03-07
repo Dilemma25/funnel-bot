@@ -30,7 +30,6 @@ from src.models.offer import OfferCodesEnum
 from src.views.user_offer_payment import get_payment_with_status
 from src.controllers.user_states import DayAStates
 from src.core.config import settings
-from src.controllers.common_states import CommonStates
 from src.states.buy import BuyStates
 from src.views.user import get_user
 
@@ -182,7 +181,7 @@ async def create_and_send_payment(
         text=f"💰 К оплате: {current_price} ₽\n\n"
              f"📧 Чек будет отправлен на: `{user_email}`\n\n"
              f"Нажми кнопку ниже для перехода к оплате.\n\n"
-             f"Если платеж не будет подтвержден в течение 20 минут"
+             f"Если платеж не будет подтвержден в течение 20 минут\n"
              f"Введите команду /help и напишите обращение в поддержку",
         reply_markup=keyboard
     )
@@ -195,7 +194,7 @@ async def create_and_send_payment(
             stage=DayAStates.PAYMENT_PROCESS,
 
             delete_at=datetime.now(settings.timezone) + SentMessageDeleteTimings.get_short(),
-            delete_on_stage=CommonStates.DISCOUNT_EXPIRES,
+            delete_on_stage=DayAStates.FINAL,
             connection=conn
         )
 

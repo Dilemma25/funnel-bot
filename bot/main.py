@@ -5,15 +5,13 @@ from src.core.logging_config import setup_logging
 
 logger = setup_logging(__name__, service=settings.service_name)
 
-import os
-
 from src.bootstrap.course_bot.bootstrap import start_app as start_course_bot
 from src.bootstrap.funnel_bot.bootstrap import start_app as start_funnel_bot
 
 
 
 def main():
-    service_name = os.getenv("SERVICE_NAME")
+    service_name = settings.service_name
 
     if not service_name:
         raise ValueError("SERVICE_NAME environment variable is required")
