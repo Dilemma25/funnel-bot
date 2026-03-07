@@ -6,13 +6,13 @@ RUN_IN_TRANSACTION = True
 async def upgrade(db: BaseDBAsyncClient) -> str:
     return """
            INSERT INTO media (id, code, file_id, offer_id) \
-           VALUES (1, 'лид-магнит.mp4', 'BAACAgIAAxkBAAIHQWmHoPpWJqCaD88jMuzjB38SukuZAAJsgAACOg1hS6W3p8hD8EfHOgQ', 1), \
-                  (2, 'Чек-лист_20_мест_утечки_денег.pdf', \
+           VALUES (1, 'тест-лид-магнит.mp4', 'BAACAgIAAxkBAAIHQWmHoPpWJqCaD88jMuzjB38SukuZAAJsgAACOg1hS6W3p8hD8EfHOgQ', 1), \
+                  (2, 'тест-Чек-лист_20_мест_утечки_денег.pdf', \
                    'BQACAgIAAxkBAAIHVWmHojUXuAqybz2H1_e-n2GJecnbAAKBnQACO085SG9SOgtFOEsZOgQ', 1), \
-                  (3, 'V1_krujok_jadnost.mp4', \
+                  (3, 'тест-V1_krujok_jadnost.mp4', \
                    'DQACAgIAAxkBAAIHXWmHol1E93Pr0dQBHbwoA3OTN15rAAKZqAAC-ZoISLKMBnQ5TztZOgQ', 1), \
-                  (4, 'V2_krujok_metod.mp4', 'DQACAgIAAxkBAAIHZWmHon-7gZquVjCxxBN6_ju8cqEaAAL3qAAC-ZoISBPLQNRva6pAOgQ', \
-                   1), \
+                  (4, 'тест-V2_krujok_metod.mp4', \
+                   'DQACAgIAAxkBAAIHZWmHon-7gZquVjCxxBN6_ju8cqEaAAL3qAAC-ZoISBPLQNRva6pAOgQ', 1), \
                   (5, 'otzyv_1.jpg', \
                    'AgACAgIAAxkBAAIHbWmHoqx5mDBqFonY02_KWFWDc9KIAALTC2sbeDghSKgkD42Y93pZAQADAgADeQADOgQ', 1), \
                   (6, 'otzyv_2.jpg', \
@@ -22,8 +22,22 @@ async def upgrade(db: BaseDBAsyncClient) -> str:
                   (8, 'otzyv_4.jpg', \
                    'AgACAgIAAxkBAAIHhmmHoxO84J8Qj2lrWXL8rAtj4yM-AALXC2sbeDghSIuOGsyHjXmfAQADAgADeQADOgQ', 1), \
                   (9, 'otzyv_5.jpg', \
-                   'AgACAgIAAxkBAAIHjmmHoyy6gAkWehILo_pNyehs8j2UAALYC2sbeDghSKcQxImjaJIeAQADAgADeQADOgQ', \
-                   1) ON CONFLICT (id) DO NOTHING;
+                   'AgACAgIAAxkBAAIHjmmHoyy6gAkWehILo_pNyehs8j2UAALYC2sbeDghSKcQxImjaJIeAQADAgADeQADOgQ', 1), \
+                  (10, 'лид-магнит.mp4', \
+                   'BAACAgIAAxkBAAINXGmre5yMcEVAg9XnO2qj83X6z06HAALCnAACYipYSSrj8mUhmONFOgQ', 1), \
+                  (11, 'Чек-лист_20_мест_утечки_денег.pdf', \
+                   'BQACAgIAAxkBAAINYGmre8-AlS08xy1UOnkO7YdHTHnaAALDnAACYipYSe2eC7GNzuI7OgQ', 1), \
+                  (12, 'V1_krujok_jadnost.mp4', \
+                   'BAACAgIAAxkBAAINZGmrfBBX8_cOPhgGpmDvd5po-jB2AALFnAACYipYSa6-I_QmGdJ1OgQ', 1), \
+                  (13, 'V2_krujok_metod.mp4', \
+                   'BAACAgIAAxkBAAINaGmrfEB3Au2Av33muo2CnReV2pMEAALGnAACYipYSf4ro8IEHfliOgQ', 1), \
+                  (14, 'lesson_1_module_1_video', \
+                   'BAACAgIAAxkBAAMMaauS1YdrM9CQBges6JMPF2enQcQAAkSLAAL5A2FJSSX-lPMXW1M6BA', 1), \
+                  (15, 'lesson_1_module_1_calculator', \
+                   'BQACAgIAAxkBAAMQaauS5uXwZsYKXecPnPc5pgJaZrEAAkWLAAL5A2FJTz1izoahqnk6BA', 1), \
+                  (16, 'lesson_1_module_1_check_list', \
+                   'BQACAgIAAxkBAAMUaauS-6cJdEkKdeq8ttACBnp2Y3kAAkaLAAL5A2FJTbBlc0grM5E6BA', 1) \
+           ON CONFLICT (id) DO NOTHING;
 
            SELECT setval('media_id_seq', (SELECT MAX(id) FROM media)); \
            """
