@@ -25,4 +25,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
-CMD ["uvicorn", "src.webhooks.course_bot_server.app:app","--host", "0.0.0.0","--port", "8003","--lifespan", "on","--proxy-headers"]
+CMD ["uvicorn", "src.webhooks.course_bot_server.app:app","--host", "0.0.0.0","--port", "8002","--lifespan", "on","--proxy-headers"]

@@ -133,8 +133,8 @@ async def start_day_a(message: Message, state: FSMContext):
             delete_at=task_day_b_started_time_run + SentMessageDeleteTimings.get_long(),
         )
 
-        await create_task(user_id, task_day_b_started_type, task_day_b_started_payload.model_dump_json(),
-                          task_day_b_started_time_run, conn)
+        # await create_task(user_id, task_day_b_started_type, task_day_b_started_payload.model_dump_json(),
+        #                   task_day_b_started_time_run, conn)
 
 
 @day_a_router.callback_query(F.data == "day_a:a1:start")
