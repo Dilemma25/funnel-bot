@@ -5,49 +5,40 @@ RUN_IN_TRANSACTION = True
 
 async def upgrade(db: BaseDBAsyncClient) -> str:
     return """
-           ALTER TABLE "media" \
-               ADD "bot_tag" VARCHAR(23);
-           COMMENT \
-           ON COLUMN "media"."bot_tag" IS 'FUNNEL: funnel_bot\nSMART_WALLET_COURSE: smart_wallet_course_bot';
+    -- Добавляем колонку bot_tag
+    ALTER TABLE "media"
+        ADD COLUMN "bot_tag" VARCHAR(23) NOT NULL DEFAULT 'funnel_bot';
+    COMMENT ON COLUMN "media"."bot_tag" IS 'FUNNEL: funnel_bot\nSMART_WALLET_COURSE: smart_wallet_course_bot';
 
-           UPDATE media
-           SET bot_tag = 'funnel_bot'
-           WHERE bot_tag IS NULL
-             AND id IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13);
+    -- Обновляем bot_tag для smart_wallet_course_bot
+    UPDATE media
+    SET bot_tag = 'smart_wallet_course_bot'
+    WHERE id IN (
+        14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27
+    );
 
-           UPDATE media
-           SET bot_tag = 'smart_wallet_course_bot'
-           WHERE bot_tag IS NULL
-             AND id IN (14, 15, 16);
+    -- Добавляем колонку file_type
+    ALTER TABLE "media"
+        ADD COLUMN "file_type" VARCHAR(10);
+    COMMENT ON COLUMN "media"."file_type" IS 'VIDEO: video\nDOCUMENT: document\nPHOTO: photo\nVIDEO_NOTE: video_note\nAUDIO: audio\nANIMATION: animation';
 
-           ALTER TABLE "media" \
-               ADD "file_type" VARCHAR(10);
-           COMMENT \
-           ON COLUMN "media"."file_type" IS 'VIDEO: video\nDOCUMENT: document\nPHOTO: photo\nVIDEO_NOTE: video_note\nAUDIO: audio\nANIMATION: animation';
+    -- Проставляем file_type по префиксу file_id
+    UPDATE media
+    SET file_type = 'video'
+    WHERE file_id LIKE 'BAA%';
 
-        -- Обновляем file_type на основе file_id префиксов
-        -- BAA = video, BQA = document, AgA = photo, DQA = video_note
+    UPDATE media
+    SET file_type = 'document'
+    WHERE file_id LIKE 'BQA%';
 
-        -- Video (file_id начинается с BAA)
-           UPDATE media
-           SET file_type = 'video'
-           WHERE file_id LIKE 'BAA%';
+    UPDATE media
+    SET file_type = 'photo'
+    WHERE file_id LIKE 'AgA%';
 
-           -- Document (file_id начинается с BQA)
-           UPDATE media
-           SET file_type = 'document'
-           WHERE file_id LIKE 'BQA%';
-
-           -- Photo (file_id начинается с AgA)
-           UPDATE media
-           SET file_type = 'photo'
-           WHERE file_id LIKE 'AgA%';
-
-           -- Video note (file_id начинается с DQA)
-           UPDATE media
-           SET file_type = 'video_note'
-           WHERE file_id LIKE 'DQA%'; \
-           """
+    UPDATE media
+    SET file_type = 'video_note'
+    WHERE file_id LIKE 'DQA%';
+    """
 
 async def downgrade(db: BaseDBAsyncClient) -> str:
     return """
