@@ -53,7 +53,7 @@ async def lifespan(fastapi_app: FastAPI):
         await bot.set_webhook(
             url=webhook_url,
             secret_token=settings.course_bot_webhook_secret_token,
-            drop_pending_updates=False,
+            drop_pending_updates=True,
             allowed_updates=["message", "callback_query"]
         )
 

@@ -1,6 +1,6 @@
 from aiogram import Router
-from src.controllers.smart_wallet_course.handlers import smart_wallet_router
-from src.controllers.admin.handlers import admin_router
+from src.controllers.smart_wallet_bot.smart_wallet_course.handlers import smart_wallet_router
+from src.controllers.smart_wallet_bot.admin.handlers import admin_router
 
 
 def setup_routers():

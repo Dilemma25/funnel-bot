@@ -1,7 +1,7 @@
 from src.models import SentMessage
 from src.models import UserState
 from src.core.config import settings
-from src.controllers.user_states import get_stage_order
+from src.controllers.user_states import get_state_order
 
 from typing import List
 from datetime import datetime
@@ -25,7 +25,7 @@ async def get_messages_to_delete_by_stage(
     # 2. Создаём mapping {user_id: {current_stage, current_order}}
     user_stage_info = {}
     for us in user_states:
-        order = get_stage_order(us.state)
+        order = get_state_order(us.state)
         if order > 0:
             user_stage_info[us.user_id] = {
                 'stage': us.state,
@@ -56,7 +56,7 @@ async def get_messages_to_delete_by_stage(
         if not user_info:
             continue
 
-        message_order = get_stage_order(message.delete_on_stage)
+        message_order = get_state_order(message.delete_on_stage)
 
         if message_order == 0:
             continue

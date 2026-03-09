@@ -1,8 +1,9 @@
 from aiogram import Router
-from src.controllers.admin.handlers import admin_router
-from src.controllers.day_a.handlers import day_a_router
+from src.controllers.funnel_bot.admin.handlers import admin_router
+from src.controllers.funnel_bot.day_a.handlers import day_a_router
 from src.controllers.echo import echo_router
 from src.controllers.support.handlers import support_router
+
 
 def setup_routers():
 

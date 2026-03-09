@@ -16,14 +16,14 @@ from src.views.user_offer import get_user_offer
 from src.views.user_offer import create_user_offer
 from src.views.tasks import create_task
 from src.models.offer import OfferCodesEnum
-import src.controllers.day_a.messages as messages_day_a
-import src.controllers.day_b.messages as messages_day_b
+import src.controllers.funnel_bot.day_a.messages as messages_day_a
+import src.controllers.funnel_bot.day_b.messages as messages_day_b
 from src.core.config import settings
 from src.views.user_state.create_user_state import create_user_state
 from src.views.user_state.update_user_state import update_user_state
 from . import day_a_router
-from src.controllers.day_a.timings import Timings
-from src.controllers.day_a.file_codes import FileCodes
+from src.controllers.funnel_bot.day_a.timings import Timings
+from src.controllers.funnel_bot.day_a.file_codes import FileCodes
 from src.controllers.user_states import DayAStates, DayBStates
 
 from src.controllers.schemas.task_payloads import DocumentTaskPayload

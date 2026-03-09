@@ -10,7 +10,7 @@ from . import admin_router
 
 
 @admin_router.message(Command("admin"), F.from_user.id.in_(settings.admin_ids))
-async def start(message: Message, state: FSMContext):
+async def admin_menu(message: Message, state: FSMContext):
     """Главное меню"""
     await state.clear()
 

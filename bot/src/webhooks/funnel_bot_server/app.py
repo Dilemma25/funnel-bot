@@ -23,6 +23,7 @@ from src.bootstrap.funnel_bot.setup_dispatcher import setup_dispatcher
 
 from typing import Optional
 
+
 @asynccontextmanager
 async def lifespan(fastapi_app: FastAPI):
     logger.info("🚀 Starting webhook server...")
@@ -53,7 +54,7 @@ async def lifespan(fastapi_app: FastAPI):
         await bot.set_webhook(
             url=webhook_url,
             secret_token=settings.funnel_bot_webhook_secret_token,
-            drop_pending_updates=False,
+            drop_pending_updates=True,
             allowed_updates=["message", "callback_query"]
         )
 

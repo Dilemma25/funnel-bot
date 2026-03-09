@@ -2,7 +2,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiogram import F
 
-import src.controllers.day_b.messages as messages
+import src.controllers.funnel_bot.day_b.messages as messages
 
 from . import day_b_router
 

@@ -5,21 +5,21 @@ from tortoise.transactions import in_transaction
 
 from src.keyboards import day_a_keyboards as day_a_keyboards
 from src.models.offer import OfferCodesEnum
-from src.controllers.day_a.consts import QUIZ_ANSWERS
+from src.controllers.funnel_bot.day_a.consts import QUIZ_ANSWERS
 from src.models.sent_message import SentMessageDeleteTimings, SentMessageTagEnum
 from src.models.user_history import EventTypeEnum
 from src.processing.task_types import TaskTypeEnum
 from src.views.media import get_media_by_file_code
 from src.views.sent_message import track_message
 from src.views.tasks import create_task
-from src.controllers.day_a import messages as messages
+from .. import messages as messages
 from src.views.user_history import create_user_history
 from src.views.user_state.update_user_state import update_user_state
 from . import day_a_router
 
 from datetime import datetime
 
-from src.controllers.day_a.timings import Timings
+from src.controllers.funnel_bot.day_a.timings import Timings
 from ..file_codes import FileCodes
 from src.core.config import settings
 from src.controllers.user_states import DayAStates

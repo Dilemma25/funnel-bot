@@ -45,6 +45,7 @@ class Settings(BaseSettings):
     course_bot_webhook_url: str = Field(alias="COURSE_BOT_WEBHOOK_URL")
     course_bot_webhook_secret_token: str = Field(alias="COURSE_BOT_WEBHOOK_SECRET_TOKEN")
     course_bot_link: str = Field(alias="COURSE_BOT_LINK")
+    course_bot_final_table_link: str = Field(alias="COURSE_BOT_FINAL_TABLE_LINK")
 
     #YOOKASSA
     shop_secret_key: str = Field(alias="SHOP_SECRET_KEY")
@@ -54,7 +55,7 @@ class Settings(BaseSettings):
     tz: str = Field(alias="TZ")
     app_env: Environment = Field(default=Environment.DEVELOPMENT, alias="APP_ENV")
     admin_ids: list[int] = Field(default_factory=list, alias="ADMIN_IDS")
-    service_name: str = Field(alias="SERVICE_NAME")
+    service_name: str = Field(alias="SERVICE_NAME", default="bot")
 
 
     @property

@@ -14,19 +14,19 @@ from tortoise.transactions import in_transaction
 
 from src.models.sent_message import SentMessageTagEnum
 from src.models.sent_message import SentMessageDeleteTimings
-from src.controllers.day_a.file_codes import FileCodes
+from src.controllers.funnel_bot.day_a.file_codes import FileCodes
 from src.controllers.user_states import DayAStates, DayBStates
 from src.models.offer import OfferCodesEnum
-from src.controllers.day_a import messages
-from src.controllers.day_a.handlers import day_a_router
-from src.controllers.day_a.timings import Timings
+from src.controllers.funnel_bot.day_a import messages
+from src.controllers.funnel_bot.day_a.handlers import day_a_router
+from src.controllers.funnel_bot.day_a.timings import Timings
 from src.core.config import settings
 from src.keyboards.day_a_keyboards import keyboard_A9_2_2
 from src.processing.task_types import TaskTypeEnum
 from src.views.media import get_media_by_file_code
 from src.views.tasks import create_task
 from src.views.user_state.update_user_state import update_user_state
-from src.controllers.day_a import consts as consts
+from src.controllers.funnel_bot.day_a import consts as consts
 
 from src.controllers.schemas.keyboard import keyboard
 from src.controllers.schemas.keyboard import button

@@ -30,7 +30,8 @@ async def startup(ctx):
 
     await init_db()
 
-    ctx["bot"] = SafeBot(settings.funnel_bot_token)
+    ctx["funnel_bot"] = SafeBot(settings.funnel_bot_token)
+    ctx["course_sm_bot"] = SafeBot(settings.course_bot_token)
     ctx["task_factory"] = TaskFactory()
     ctx["redis"] = init_redis()
 
@@ -40,7 +41,8 @@ async def shutdown(ctx):
     from src.core.database import close_db
 
     logger.info("Worker shutting down...")
-    await ctx["bot"].session.close()
+    await ctx["funnel_bot"].session.close()
+    await ctx["course_sm_bot"].session.close()
 
     if "redis" in ctx:
         ctx["redis"].close()
@@ -62,7 +64,7 @@ async def send_scheduled_message(ctx, task_id, task_type, payload):
 
     logger.info(f"Processing task {task_id}: {task_type}")
 
-    bot: SafeBot = ctx["bot"]
+    bot: SafeBot = ctx["funnel_bot"]
     task_factory: TaskFactory = ctx["task_factory"]
 
     job_try = ctx.get("job_try", 1)
@@ -138,7 +140,9 @@ async def delete_message(
     bot = None
 
     if message_tag == SentMessageTagEnum.FUNNEL:
-        bot = ctx["bot"]
+        bot = ctx["funnel_bot"]
+    if message_tag == SentMessageTagEnum.SM_COURSE:
+        bot = ctx["course_sm_bot"]
 
     try:
         try:
@@ -173,7 +177,7 @@ async def send_nudge(ctx, telegram_user_id: int):
 
     logger.info(f"📨 Sending nudge to user {telegram_user_id}")
 
-    bot: SafeBot = ctx["bot"]
+    bot: SafeBot = ctx["funnel_bot"]
 
     job_try = ctx.get("job_try", 1)
     max_tries = ctx.get("max_tries", 3)

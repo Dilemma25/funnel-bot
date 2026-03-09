@@ -102,7 +102,7 @@ services:
       context: ./bot
       target: runtime
       dockerfile: ./src/webhooks/course_bot_server/Dockerfile
-    container_name: course-bot
+    container_name: funnel-course-bot
     environment:
       - SERVICE_NAME=course_bot
     env_file: .env

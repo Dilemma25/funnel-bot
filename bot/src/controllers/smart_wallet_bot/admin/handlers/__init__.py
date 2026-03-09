@@ -2,6 +2,5 @@ from aiogram import Router
 
 admin_router = Router()
 
-from . import start
+from . import admin_menu
 from . import append_file
-from . import create_offer

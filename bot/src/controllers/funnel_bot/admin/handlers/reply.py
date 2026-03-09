@@ -2,7 +2,7 @@ from aiogram import F
 from aiogram.filters import Command
 from aiogram.types import Message
 
-from src.controllers.admin.handlers import admin_router
+from src.controllers.funnel_bot.admin.handlers import admin_router
 from src.core.config import settings
 from src.safe_bot import SafeBot
 

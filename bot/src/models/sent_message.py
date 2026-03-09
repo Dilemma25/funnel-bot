@@ -7,7 +7,7 @@ from tortoise.models import Model
 
 class SentMessageTagEnum:
     FUNNEL = "funnel"
-    COURSE = "course"
+    SM_COURSE = "sm_course"
 
 
 class SentMessageDeleteTimings:
@@ -27,6 +27,11 @@ class SentMessageDeleteTimings:
     def get_long() -> timedelta:
         """24 часа (prod) / 10 минуты (dev)"""
         return timedelta(minutes=10) if settings.is_dev else timedelta(hours=24)
+
+    @staticmethod
+    def get_extra_long() -> timedelta:
+        """24 часа (prod) / 10 минуты (dev)"""
+        return timedelta(minutes=10) if settings.is_dev else timedelta(hours=40)
 
 
 class SentMessage(Model):
