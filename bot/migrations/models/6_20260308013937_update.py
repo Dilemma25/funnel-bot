@@ -7,7 +7,7 @@ async def upgrade(db: BaseDBAsyncClient) -> str:
     return """
     -- Добавляем колонку bot_tag
     ALTER TABLE "media"
-        ADD COLUMN "bot_tag" VARCHAR(23) NOT NULL DEFAULT 'funnel_bot';
+        ADD COLUMN "bot_tag" VARCHAR(23) DEFAULT 'funnel_bot';
     COMMENT ON COLUMN "media"."bot_tag" IS 'FUNNEL: funnel_bot\nSMART_WALLET_COURSE: smart_wallet_course_bot';
 
     -- Обновляем bot_tag для smart_wallet_course_bot
