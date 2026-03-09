@@ -8,6 +8,17 @@ async def upgrade(db: BaseDBAsyncClient) -> str:
     -- Добавляем колонку bot_tag
     ALTER TABLE "media"
         ADD COLUMN "bot_tag" VARCHAR(23) DEFAULT 'funnel_bot';
+
+    -- Обновляем bot_tag для smart_wallet_course_bot
+    UPDATE media
+    SET bot_tag = 'smart_wallet_course_bot'
+    WHERE id IN (14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27);
+
+    -- Убеждаемся что все строки заполнены
+    UPDATE media
+    SET bot_tag = 'funnel_bot'
+    WHERE bot_tag IS NULL;
+        
     COMMENT ON COLUMN "media"."bot_tag" IS 'FUNNEL: funnel_bot\nSMART_WALLET_COURSE: smart_wallet_course_bot';
 
     -- Обновляем bot_tag для smart_wallet_course_bot
