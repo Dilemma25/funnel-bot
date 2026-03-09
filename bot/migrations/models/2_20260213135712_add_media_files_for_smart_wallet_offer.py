@@ -6,50 +6,46 @@ RUN_IN_TRANSACTION = True
 async def upgrade(db: BaseDBAsyncClient) -> str:
     return """
            INSERT INTO media (id, code, file_id, offer_id) \
-           VALUES (1, 'тест-лид-магнит.mp4', 'BAACAgIAAxkBAAIHQWmHoPpWJqCaD88jMuzjB38SukuZAAJsgAACOg1hS6W3p8hD8EfHOgQ', 1), \
-                  (2, 'тест-Чек-лист_20_мест_утечки_денег.pdf', \
-                   'BQACAgIAAxkBAAIHVWmHojUXuAqybz2H1_e-n2GJecnbAAKBnQACO085SG9SOgtFOEsZOgQ', 1), \
-                  (3, 'тест-V1_krujok_jadnost.mp4', \
-                   'DQACAgIAAxkBAAIHXWmHol1E93Pr0dQBHbwoA3OTN15rAAKZqAAC-ZoISLKMBnQ5TztZOgQ', 1), \
-                  (4, 'тест-V2_krujok_metod.mp4', \
-                   'DQACAgIAAxkBAAIHZWmHon-7gZquVjCxxBN6_ju8cqEaAAL3qAAC-ZoISBPLQNRva6pAOgQ', 1), \
-                  (5, 'otzyv_1.jpg', \
-                   'AgACAgIAAxkBAAIHbWmHoqx5mDBqFonY02_KWFWDc9KIAALTC2sbeDghSKgkD42Y93pZAQADAgADeQADOgQ', 1), \
-                  (6, 'otzyv_2.jpg', \
-                   'AgACAgIAAxkBAAIHdWmHosDCcJ1VbiWP0n70XvA2T6KoAALUC2sbeDghSAS1L97x7b5LAQADAgADeQADOgQ', 1), \
-                  (7, 'otzyv_3.jpg', \
-                   'AgACAgIAAxkBAAIHeWmHos_ReY2bFbDSXk7T6hb-QbBKAALVC2sbeDghSDh2jiQagFe1AQADAgADeQADOgQ', 1), \
-                  (8, 'otzyv_4.jpg', \
-                   'AgACAgIAAxkBAAIHhmmHoxO84J8Qj2lrWXL8rAtj4yM-AALXC2sbeDghSIuOGsyHjXmfAQADAgADeQADOgQ', 1), \
-                  (9, 'otzyv_5.jpg', \
-                   'AgACAgIAAxkBAAIHjmmHoyy6gAkWehILo_pNyehs8j2UAALYC2sbeDghSKcQxImjaJIeAQADAgADeQADOgQ', 1), \
-                  (10, 'лид-магнит.mp4', \
-                   'BAACAgIAAxkBAAINXGmre5yMcEVAg9XnO2qj83X6z06HAALCnAACYipYSSrj8mUhmONFOgQ', 1), \
-                  (11, 'Чек-лист_20_мест_утечки_денег.pdf', \
-                   'BQACAgIAAxkBAAINYGmre8-AlS08xy1UOnkO7YdHTHnaAALDnAACYipYSe2eC7GNzuI7OgQ', 1), \
-                  (12, 'V1_krujok_jadnost.mp4', \
-                   'BAACAgIAAxkBAAINZGmrfBBX8_cOPhgGpmDvd5po-jB2AALFnAACYipYSa6-I_QmGdJ1OgQ', 1), \
-                  (13, 'V2_krujok_metod.mp4', \
-                   'BAACAgIAAxkBAAINaGmrfEB3Au2Av33muo2CnReV2pMEAALGnAACYipYSf4ro8IEHfliOgQ', 1), \
-                  (14, 'lesson_1_module_1_video', \
-                   'BAACAgIAAxkBAAMMaauS1YdrM9CQBges6JMPF2enQcQAAkSLAAL5A2FJSSX-lPMXW1M6BA', 1), \
-                  (15, 'lesson_1_module_1_calculator', \
-                   'BQACAgIAAxkBAAMQaauS5uXwZsYKXecPnPc5pgJaZrEAAkWLAAL5A2FJTz1izoahqnk6BA', 1), \
-                  (16, 'lesson_1_module_1_check_list', \
-                   'BQACAgIAAxkBAAMUaauS-6cJdEkKdeq8ttACBnp2Y3kAAkaLAAL5A2FJTbBlc0grM5E6BA', 1) \
+           VALUES 
+                  (1, 'тест-лид-магнит.mp4', 'BAACAgIAAxkBAAIHQWmHoPpWJqCaD88jMuzjB38SukuZAAJsgAACOg1hS6W3p8hD8EfHOgQ', 1),
+                  (2, 'тест-Чек-лист_20_мест_утечки_денег.pdf', 'BQACAgIAAxkBAAIHVWmHojUXuAqybz2H1_e-n2GJecnbAAKBnQACO085SG9SOgtFOEsZOgQ', 1),
+                  (3, 'тест-V1_krujok_jadnost.mp4', 'DQACAgIAAxkBAAIHXWmHol1E93Pr0dQBHbwoA3OTN15rAAKZqAAC-ZoISLKMBnQ5TztZOgQ', 1),
+                  (4, 'тест-V2_krujok_metod.mp4', 'DQACAgIAAxkBAAIHZWmHon-7gZquVjCxxBN6_ju8cqEaAAL3qAAC-ZoISBPLQNRva6pAOgQ', 1),
+                  (5, 'otzyv_1.jpg', 'AgACAgIAAxkBAAIHbWmHoqx5mDBqFonY02_KWFWDc9KIAALTC2sbeDghSKgkD42Y93pZAQADAgADeQADOgQ', 1),
+                  (6, 'otzyv_2.jpg', 'AgACAgIAAxkBAAIHdWmHosDCcJ1VbiWP0n70XvA2T6KoAALUC2sbeDghSAS1L97x7b5LAQADAgADeQADOgQ', 1),
+                  (7, 'otzyv_3.jpg', 'AgACAgIAAxkBAAIHeWmHos_ReY2bFbDSXk7T6hb-QbBKAALVC2sbeDghSDh2jiQagFe1AQADAgADeQADOgQ', 1),
+                  (8, 'otzyv_4.jpg', 'AgACAgIAAxkBAAIHhmmHoxO84J8Qj2lrWXL8rAtj4yM-AALXC2sbeDghSIuOGsyHjXmfAQADAgADeQADOgQ', 1),
+                  (9, 'otzyv_5.jpg', 'AgACAgIAAxkBAAIHjmmHoyy6gAkWehILo_pNyehs8j2UAALYC2sbeDghSKcQxImjaJIeAQADAgADeQADOgQ', 1),
+                  (10, 'лид-магнит.mp4', 'BAACAgIAAxkBAAINXGmre5yMcEVAg9XnO2qj83X6z06HAALCnAACYipYSSrj8mUhmONFOgQ', 1),
+                  (11, 'Чек-лист_20_мест_утечки_денег.pdf', 'BQACAgIAAxkBAAINYGmre8-AlS08xy1UOnkO7YdHTHnaAALDnAACYipYSe2eC7GNzuI7OgQ', 1),
+                  (12, 'V1_krujok_jadnost.mp4', 'BAACAgIAAxkBAAINZGmrfBBX8_cOPhgGpmDvd5po-jB2AALFnAACYipYSa6-I_QmGdJ1OgQ', 1),
+                  (13, 'V2_krujok_metod.mp4', 'BAACAgIAAxkBAAINaGmrfEB3Au2Av33muo2CnReV2pMEAALGnAACYipYSf4ro8IEHfliOgQ', 1),
+                  (14, 'lesson_01_module_1_video', 'BAACAgIAAxkBAAMMaauS1YdrM9CQBges6JMPF2enQcQAAkSLAAL5A2FJSSX-lPMXW1M6BA', 1),
+                  (15, 'lesson_01_module_1_calculator', 'BQACAgIAAxkBAAMQaauS5uXwZsYKXecPnPc5pgJaZrEAAkWLAAL5A2FJTz1izoahqnk6BA', 1),
+                  (16, 'lesson_01_module_1_check_list', 'BQACAgIAAxkBAAMUaauS-6cJdEkKdeq8ttACBnp2Y3kAAkaLAAL5A2FJTbBlc0grM5E6BA', 1),
+                  (17, 'lesson_02_module_1_video', 'BAACAgIAAxkBAANmaayNjskdVkyIEDWAQd__ZRCzlEIAAl6VAALbgWlJEiTT5NV9iZ86BA', 1),
+                  (18, 'lesson_02_module_1_red_flags', 'BQACAgIAAxkBAANqaayNp1WA-mswuh8tveLSvv5nlI0AAmCVAALbgWlJS45CsUV_JaY6BA', 1),
+                  (19, 'lesson_03_module_1_video', 'BAACAgIAAxkBAANuaayO_6CmlDweKoFoc8RjMXg30OYAAm-VAALbgWlJ3eltgFUXwM86BA', 1),
+                  (20, 'lesson_04_module_1_video', 'BAACAgIAAxkBAANyaaySK82TgeAM5g-Asjd473bI0OAAAq6VAALbgWlJU1IMQd5OOa46BA', 1),
+                  (21, 'lesson_07_module_3_video', 'BAACAgIAAxkBAAN2aayWKRMAAcdGuSQdE-Ue0kAfsTHrAALmlQAC24FpSfPpcdxzB2GPOgQ', 1),
+                  (22, 'lesson_08_module_3_video', 'BAACAgIAAxkBAAORaa5E3ySpZpuck9wQW2QmzV811XYAApHAAALCOnBJXM3vTSbRPQs6BA', 1),
+                  (23, 'lesson_09_module_3_video', 'BAACAgIAAxkBAAN6aaycEq45ZOd8qOVni4ijSlrR_ugAAjyWAALbgWlJjar5S_5ieeA6BA', 1),
+                  (24, 'lesson_10_module_4_video', 'BAACAgIAAxkBAAN-aayfyEmwprnz_aumGYNtN9V2rX8AAlSWAALbgWlJdJ57QOfSv3I6BA', 1),
+                  (25, 'lesson_11_module_4_video', 'BAACAgIAAxkBAAOCaayiqcVK5j1n-t3PLSYh4Iui2roAAmuWAALbgWlJMZJMs5Xjklc6BA', 1),
+                  (26, 'lesson_12_module_4_video', 'BAACAgIAAxkBAAOGaaymLGJz-eXaWnIVR74F_qrKRK4AAoKWAALbgWlJTmcYy58X6_g6BA', 1)
            ON CONFLICT (id) DO NOTHING;
 
-           SELECT setval('media_id_seq', (SELECT MAX(id) FROM media)); \
+           SELECT setval('media_id_seq', (SELECT MAX(id) FROM media));
            """
 
 
 async def downgrade(db: BaseDBAsyncClient) -> str:
     return """
-           DELETE \
-           FROM media \
-           WHERE id IN (1, 2, 3, 4, 5, 6, 7, 8, 9);
+           DELETE FROM media
+           WHERE id IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+                        17, 18, 19, 20, 21, 22, 23, 24, 25, 26);
 
-           SELECT setval('media_id_seq', (SELECT MAX(id) FROM media)); \
+           SELECT setval('media_id_seq', (SELECT MAX(id) FROM media));
            """
 
 MODELS_STATE = (
