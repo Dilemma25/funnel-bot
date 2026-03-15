@@ -34,7 +34,7 @@ def build_lessons_keyboard(end_state: SmartWalletCourseStates):
     ]]
 
     # Если пользователь только начал курс, показываем первый урок
-    if end == SmartWalletCourseStates.STARTING:
+    if end == SmartWalletCourseStates.STARTING or end.order < SmartWalletCourseStates.STARTING.order:
         first_lesson = SmartWalletCourseStates.LESSON_1
         buttons.append([
             InlineKeyboardButton(

@@ -4,7 +4,10 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
 from src.core.logging_config import setup_logging
+from src.models.offer import OfferCodesEnum
+from src.models.user_offer import UserOfferStatusEnum
 from src.views.tasks.cancel_user_tasks import cancel_user_tasks
+from src.views.user_offer import cancel_user_offer_with_status
 
 logger = setup_logging(__name__, service="webhook_yookassa")
 
@@ -174,6 +177,14 @@ async def yookassa_webhook(request: Request):
 
                     await cancel_user_tasks(
                         user_id=user.telegram_id,
+                        connection=conn
+                    )
+
+                    await cancel_user_offer_with_status(
+                        user_id=user.telegram_id,
+                        offer_code=OfferCodesEnum.SMART_WALLET,
+                        new_status=UserOfferStatusEnum.PURCHASED,
+                        connection=conn
                     )
 
                 elif payment_status == "canceled":

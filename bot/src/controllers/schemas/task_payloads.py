@@ -101,3 +101,6 @@ class SetDiscountTaskPayload(MessageTaskPayload):
 class RemoveDiscountTaskPayload(MessageTaskPayload):
     """Payload для снятия скидки + отправки сообщения"""
     offer_code: str = Field(..., description="Код оффера")
+
+class FinishFunnelTaskPayload(MessageTaskPayload):
+    offer_code: str = Field(..., description="Код оффера")

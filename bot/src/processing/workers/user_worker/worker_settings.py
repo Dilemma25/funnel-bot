@@ -1,9 +1,10 @@
-import asyncio
-from datetime import timezone, datetime, timedelta
-
-from src.controllers.user_states import DayBStates
 from src.core.logging_config import setup_logging
 logger = setup_logging(__name__, service="user_worker")
+
+import asyncio
+from datetime import timezone
+from datetime import datetime
+from datetime import timedelta
 
 from aiogram.exceptions import TelegramBadRequest
 from arq.connections import RedisSettings
@@ -11,7 +12,7 @@ from arq import Retry
 from tortoise.transactions import in_transaction
 
 from src.core.config import settings
-
+from src.controllers.user_states import DayBStates
 from src.models import ScheduledTask
 from src.models.sent_message import SentMessageTagEnum
 from src.processing.tasks.preparable import PreparableTask
@@ -211,9 +212,10 @@ async def send_nudge(ctx, telegram_user_id: int):
             parse_mode="Markdown"
         )
 
-        if message and message.message_id:
+        if message:
 
             async with in_transaction() as conn:
+
                 user_state.nudge_sent = True
                 await user_state.save(using_db=conn)
 
@@ -279,5 +281,3 @@ class WorkerSettings:
     health_check_interval = 60
 
     queue_name = "messages_for_users"
-
-

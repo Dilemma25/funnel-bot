@@ -63,7 +63,7 @@ def build_next_lesson_keyboard(callback_data: str) -> InlineKeyboardMarkup:
         )
     ]])
 
-
+#TODO сделать чтоб выводилось несколько видео, если они есть, с подписями какая часть
 @smart_wallet_router.callback_query(F.data.startswith("lesson_"))
 async def handle_lesson(
         callback: CallbackQuery,

@@ -14,33 +14,34 @@ class DayATimings:
     """Таймеры для Day A воронки"""
 
     # A2 → A3: Отправка чек-листа PDF после видео
-    A2_TO_A3 = timedelta(seconds=DEV_DELAY if IS_DEV else 30)
+    A2_TO_A3 = timedelta(seconds=DEV_DELAY if IS_DEV else 2 * 60)
 
     #Отправка клавиатуры после пдф
-    A2_TO_A2_KB = timedelta(seconds=DEV_DELAY if IS_DEV else 30)
+    A2_TO_A2_KB = timedelta(seconds=DEV_DELAY if IS_DEV else 2 * 60)
 
     # A5 → A6: Отправка кружка после результата квиза
-    A5_TO_A6 = timedelta(seconds=DEV_DELAY if IS_DEV else 50)
+    A5_TO_A6 = timedelta(seconds=DEV_DELAY if IS_DEV else 2 * 60)
 
     # A6 → A7: Отправка аналогии + формулы после кружка
-    A6_TO_A7 = timedelta(seconds=DEV_DELAY if IS_DEV else 50)
+    A6_TO_A7 = timedelta(seconds=DEV_DELAY if IS_DEV else 4 * 60)
 
     # A8 → A9: Предложение курса
-    A8_TO_A9 = timedelta(seconds=DEV_DELAY if IS_DEV else 30)
+    A8_TO_A9 = timedelta(seconds=DEV_DELAY if IS_DEV else 10 * 60)
 
-    DISCOUNT_TIMER = timedelta(seconds=130 if IS_DEV else 30)
+    DISCOUNT_TIMER = timedelta(seconds=130 if IS_DEV else 3 * 60 * 60)
 
     #Если нажал на оплату, но не оплатил, напоминаем о таймере
-    I1_TO_A9_1_1 = timedelta(seconds=70 if IS_DEV else 30)
+    I1_TO_A9_1_1 = timedelta(seconds=70 if IS_DEV else 30 * 60)
 
     #Возврат к оферу после FAQ
-    A9_2_TO_A9_2_1 = timedelta(seconds=DEV_DELAY if IS_DEV else 30)
+    A9_2_TO_A9_2_1 = timedelta(seconds=DEV_DELAY if IS_DEV else 3 * 60)
 
-    DAY_B_START = timedelta(seconds=10 * 60 * 60 if IS_DEV else 24 * 60 * 60)
 
-    DAY_C_START = timedelta(seconds=DEV_DELAY if IS_DEV else 48 * 60 * 60)
+    DAY_B_START = timedelta(seconds=10 * 60 if IS_DEV else 24 * 60 * 60)
 
-    FUNNEL_FINAL = timedelta(seconds=DEV_DELAY if IS_DEV else 72 * 60 * 60)
+    DAY_C_START = timedelta(seconds=20 * 60 if IS_DEV else 48 * 60 * 60)
+
+    FUNNEL_FINAL = timedelta(seconds=25 * 60 if IS_DEV else 72 * 60 * 60)
 
 class Timings:
     """Человекопонятные названия таймеров"""
@@ -63,6 +64,7 @@ class Timings:
     DAY_C_START = DayATimings.DAY_C_START
 
     FUNNEL_FINAL = DayATimings.FUNNEL_FINAL
+
 # def print_timings():
 #     """Выводит все таймеры (для отладки)"""
 #     mode = "DEV" if IS_DEV else "PRODUCTION"

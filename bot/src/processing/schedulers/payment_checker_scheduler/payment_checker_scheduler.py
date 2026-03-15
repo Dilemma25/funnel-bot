@@ -1,8 +1,10 @@
 from src.core.logging_config import setup_logging
 
 logger = setup_logging(__name__, service="payment_checker_scheduler")
+from src.models.offer import OfferCodesEnum
+from src.models.user_offer import UserOfferStatusEnum
+from src.views.user_offer import cancel_user_offer_with_status
 
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import timedelta
 from datetime import datetime
 from tortoise.transactions import in_transaction
@@ -18,8 +20,6 @@ from src.core.config import settings
 
 
 class PaymentCheckerScheduler:
-    # def __init__(self):
-    #     self.scheduler = AsyncIOScheduler()
 
     async def check_pending_payments(self):
         """Проверяет pending платежи батчами"""
@@ -79,6 +79,14 @@ class PaymentCheckerScheduler:
 
                             await cancel_user_tasks(
                                 user_id=user.telegram_id,
+                                connection=conn
+                            )
+
+                            await cancel_user_offer_with_status(
+                                user_id=user.telegram_id,
+                                offer_code=OfferCodesEnum.SMART_WALLET,
+                                new_status=UserOfferStatusEnum.PURCHASED,
+                                connection=conn
                             )
 
                             await bot.session.close()
@@ -99,23 +107,3 @@ class PaymentCheckerScheduler:
 
         except Exception as e:
             logger.error(f"Критическая ошибка в check_pending_payments: {e}", exc_info=True)
-
-    # def start(self):
-    #     """Запуск scheduler'а"""
-    #     self.scheduler.add_job(
-    #         self.check_pending_payments,
-    #         'interval',
-    #         minutes=1,
-    #         id='payment_checker_scheduler',
-    #         replace_existing=True,
-    #         max_instances=3,
-    #         coalesce=True
-    #     )
-    #
-    #     self.scheduler.start()
-    #     logger.info("✅ Payment checker запущен (интервал: 1 минута)")
-    #
-    # def shutdown(self):
-    #     """Остановка scheduler'а"""
-    #     self.scheduler.shutdown()
-    #     logger.info("⏹ Payment checker остановлен")

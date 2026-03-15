@@ -5,7 +5,7 @@ from src.views.user_history import create_user_history
 
 logger = setup_logging(__name__, service='funnel_bot')
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from aiogram import F
 from aiogram.fsm.context import FSMContext
@@ -20,7 +20,6 @@ from src.models.offer import OfferCodesEnum
 from src.controllers.funnel_bot.day_a import messages
 from src.controllers.funnel_bot.day_a.handlers import day_a_router
 from src.controllers.funnel_bot.day_a.timings import Timings
-from src.core.config import settings
 from src.keyboards.day_a_keyboards import keyboard_A9_2_2
 from src.processing.task_types import TaskTypeEnum
 from src.views.media import get_media_by_file_code
@@ -54,19 +53,38 @@ async def handle_a7_next(callback: CallbackQuery, state: FSMContext):
     try:
         async with in_transaction() as conn:
 
+            # await create_user_history(
+            #     user_id=user_id,
+            #     event_type=EventTypeEnum.STAGE_ENTERED,
+            #     user_stage=DayAStates.A_7_SYSTEM_MESSAGE_SENT,
+            #     connection=conn
+            # )
+
+            now = datetime.now(timezone.utc)
+
+            await update_user_state(
+                user_id=user_id,
+                offer_code=OfferCodesEnum.SMART_WALLET,
+                last_activity_at=now,
+                state=DayAStates.A_7_SYSTEM_MESSAGE_SENT,
+                connection=conn
+            )
+
             await track_message(
                 user_id=user_id,
                 telegram_message_id=message.message_id,
                 tag=SentMessageTagEnum.FUNNEL,
                 stage=DayAStates.A_8_VIDEO_NOTE_METHOD_SENT,
-                delete_at=datetime.now(settings.timezone) + SentMessageDeleteTimings.get_long(),
+                delete_at=now + SentMessageDeleteTimings.get_long(),
                 delete_on_stage=DayAStates.FINAL,
                 connection=conn
             )
 
-            now = datetime.now(settings.timezone)
 
-            # ===== ТАСКА 1: Установка скидки + оффер =====
+
+            # ===== ТАСКА 1: Установка скидки + оффер (А9)=====
+            run_at = now + Timings.OFFER_DELAY
+
             payload_offer = SetDiscountTaskPayload(
                 user_id=user_id,
                 text=messages.message_A9,
@@ -80,7 +98,7 @@ async def handle_a7_next(callback: CallbackQuery, state: FSMContext):
 
                 message_tag=SentMessageTagEnum.FUNNEL,
                 message_stage=DayAStates.A_9_OFFER_SENT,
-                delete_at=datetime.now(settings.timezone) + SentMessageDeleteTimings.get_default(),
+                delete_at=run_at + SentMessageDeleteTimings.get_default(),
                 delete_on_stage=DayAStates.FINAL
             )
 
@@ -88,11 +106,12 @@ async def handle_a7_next(callback: CallbackQuery, state: FSMContext):
                 user_id=user_id,
                 task_type=TaskTypeEnum.SET_DISCOUNT_AND_SEND_MESSAGE,
                 payload=payload_offer.model_dump_json(),
-                run_at=now + Timings.OFFER_DELAY,
+                run_at=run_at,
                 connection=conn
             )
 
-            # ===== ТАСКА 2: Напоминание о таймере =====
+            # ===== ТАСКА 2: Напоминание о таймере (A9.1.1)=====
+            run_at = now + Timings.REMEMBER_ABOUT_DISCOUNT
 
             payload_reminder = MessageTaskPayload(
                 user_id=user_id,
@@ -103,7 +122,7 @@ async def handle_a7_next(callback: CallbackQuery, state: FSMContext):
 
                 message_tag=SentMessageTagEnum.FUNNEL,
                 message_stage=DayAStates.A_9_1_1_REMEMBER_ABOUT_DISCOUNT,
-                delete_at=datetime.now(settings.timezone) + SentMessageDeleteTimings.get_default(),
+                delete_at=run_at + SentMessageDeleteTimings.get_default(),
                 delete_on_stage=DayAStates.FINAL
             )
 
@@ -111,11 +130,12 @@ async def handle_a7_next(callback: CallbackQuery, state: FSMContext):
                 user_id=user_id,
                 task_type=TaskTypeEnum.SEND_MESSAGE,
                 payload=payload_reminder.model_dump_json(),
-                run_at=now + Timings.REMEMBER_ABOUT_DISCOUNT,
+                run_at=run_at,
                 connection=conn
             )
 
-            # ===== ТАСКА 3: Окончание скидки =====
+            # ===== ТАСКА 3: Окончание скидки (A10)=====
+            run_at = now + Timings.DISCOUNT_TIMER
 
             payload_timeout = RemoveDiscountTaskPayload(
                 user_id=user_id,
@@ -127,7 +147,7 @@ async def handle_a7_next(callback: CallbackQuery, state: FSMContext):
 
                 message_tag = SentMessageTagEnum.FUNNEL,
                 message_stage = DayAStates.FINAL,
-                delete_at = datetime.now(settings.timezone) + SentMessageDeleteTimings.get_default(),
+                delete_at = run_at + SentMessageDeleteTimings.get_default(),
                 delete_on_stage = DayBStates.B_1_COLD_SHOWER,
             )
 
@@ -135,15 +155,7 @@ async def handle_a7_next(callback: CallbackQuery, state: FSMContext):
                 user_id=user_id,
                 task_type=TaskTypeEnum.REMOVE_DISCOUNT_AND_SEND_MESSAGE,
                 payload=payload_timeout.model_dump_json(),
-                run_at=now + Timings.DISCOUNT_TIMER,
-                connection=conn
-            )
-
-            await update_user_state(
-                user_id=user_id,
-                offer_code=OfferCodesEnum.SMART_WALLET,
-                last_activity_at=datetime.now(settings.timezone),
-                state=DayAStates.A_7_SYSTEM_MESSAGE_SENT,
+                run_at=run_at,
                 connection=conn
             )
 
@@ -213,8 +225,10 @@ async def handle_faq(callback: CallbackQuery, state: FSMContext):
 
     async with in_transaction() as conn:
 
+        now = datetime.now(timezone.utc)
+
         payload = {
-            "clicked_button": "a9: Узнать подробнее(A9.1)"
+            "clicked_button": "a9: Узнать подробнее(A9.2)"
         }
 
         await create_user_history(
@@ -231,12 +245,12 @@ async def handle_faq(callback: CallbackQuery, state: FSMContext):
                 telegram_message_id=message_id,
                 tag=SentMessageTagEnum.FUNNEL,
                 stage=DayAStates.A_9_2_FAQ_SENT,
-                delete_at=datetime.now(settings.timezone) + SentMessageDeleteTimings.get_default(),
+                delete_at=now + SentMessageDeleteTimings.get_default(),
                 delete_on_stage=DayAStates.FINAL,
                 connection=conn
             )
 
-        task_type = TaskTypeEnum.SEND_MESSAGE
+        run_at = now + Timings.RETURN_TO_OFFER
 
         payload = MessageTaskPayload(
             user_id=user_id,
@@ -248,17 +262,22 @@ async def handle_faq(callback: CallbackQuery, state: FSMContext):
 
             message_tag=SentMessageTagEnum.FUNNEL,
             message_stage=DayAStates.A_9_2_1_REPEAT_OFFER_SENT,
-            delete_at=datetime.now(settings.timezone) + SentMessageDeleteTimings.get_default(),
+            delete_at=run_at + SentMessageDeleteTimings.get_default(),
             delete_on_stage=DayAStates.FINAL,
         )
-        time_run = datetime.now(settings.timezone) + Timings.RETURN_TO_OFFER
 
-        await create_task(user_id, task_type, payload.model_dump_json(), time_run, conn)
+        await create_task(
+            user_id=user_id,
+            task_type=TaskTypeEnum.SEND_MESSAGE,
+            payload=payload.model_dump_json(),
+            run_at=run_at,
+            connection=conn
+        )
 
         await update_user_state(
             user_id=user_id,
             offer_code=OfferCodesEnum.SMART_WALLET,
-            last_activity_at=datetime.now(settings.timezone),
+            last_activity_at=now,
             state=DayAStates.A_9_2_FAQ_SENT,
             connection=conn
         )
@@ -304,8 +323,10 @@ async def handle_reviews(callback: CallbackQuery, state: FSMContext):
 
     async with in_transaction() as conn:
 
+        now = datetime.now(timezone.utc)
+
         payload = {
-            "clicked_button": "a9_2_2: Отзывы(A9.2.2)"
+            "clicked_button": "a9_2_1: Отзывы(A9.2.2)"
         }
 
         await create_user_history(
@@ -323,7 +344,7 @@ async def handle_reviews(callback: CallbackQuery, state: FSMContext):
                 telegram_message_id=message_id,
                 tag=SentMessageTagEnum.FUNNEL,
                 stage=DayAStates.A_9_2_2_REVIEWS_SENT,
-                delete_at=datetime.now(settings.timezone) + SentMessageDeleteTimings.get_default(),
+                delete_at=now + SentMessageDeleteTimings.get_default(),
                 delete_on_stage=DayAStates.FINAL,
                 connection=conn
             )
@@ -331,7 +352,7 @@ async def handle_reviews(callback: CallbackQuery, state: FSMContext):
         await update_user_state(
             user_id=user_id,
             offer_code=OfferCodesEnum.SMART_WALLET,
-            last_activity_at=datetime.now(settings.timezone),
+            last_activity_at=now,
             state=DayAStates.A_9_2_2_REVIEWS_SENT,
             connection=conn,
         )

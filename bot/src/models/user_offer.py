@@ -7,7 +7,7 @@ from enum import Enum
 class UserOfferStatusEnum(str, Enum):
     ACTIVE = "active"  # Активен, проходит воронку
     PURCHASED = "purchased"  # Купил
-    DROPPED = "dropped"  # Отвалился (не купил)
+    DROPPED = "dropped"  # Отвалился на каком то этапе
     BLOCKED_BOT = "blocked_bot"  # Заблокировал бота
     COMPLETED_FREE = "completed_free"  # Прошёл воронку, но не купил
 

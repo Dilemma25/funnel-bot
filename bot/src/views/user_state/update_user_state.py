@@ -39,20 +39,22 @@ async def update_user_state(
     if connection:
         await user_state.save(using_db=connection)
 
-        await create_user_history(
-            user_id=user_id,
-            event_type=EventTypeEnum.STAGE_ENTERED,
-            user_stage=state,
-            connection=connection,
-        )
+        if state is not None and last_activity_at is not None:
+            await create_user_history(
+                user_id=user_id,
+                event_type=EventTypeEnum.STAGE_ENTERED,
+                user_stage=state,
+                connection=connection,
+            )
     else:
         await user_state.save()
 
-        await create_user_history(
-            user_id=user_id,
-            event_type=EventTypeEnum.STAGE_ENTERED,
-            user_stage=state,
-        )
+        if state is not None and last_activity_at is not None:
+            await create_user_history(
+                user_id=user_id,
+                event_type=EventTypeEnum.STAGE_ENTERED,
+                user_stage=state,
+            )
 
     return user_state
 

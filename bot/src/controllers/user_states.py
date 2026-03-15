@@ -68,8 +68,6 @@ class DayBStates(str, Enum):
     DAY_B_PAYMENT_SUCCESS = ("day_b:payment_success", 2090)
     DAY_B_PAYMENT_FAILED = ("day_b:payment_failed", 2091)
 
-    DAY_B_COMPLETED = ("day_b:completed", 2100)
-
     FINAL = ("day_b:final", 2900)
 
     @property
@@ -94,7 +92,7 @@ class DayCStates(str, Enum):
     DAY_C_PAYMENT_SUCCESS = ("day_c:payment_success", 3040)
     DAY_C_PAYMENT_FAILED = ("day_c:payment_failed", 3041)
 
-    DAY_C_COMPLETED = ("day_c:completed", 3050)
+    FINAL = ("day_c:final", 3050)
 
     @property
     def order(self) -> int:

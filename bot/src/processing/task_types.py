@@ -13,3 +13,6 @@ class TaskTypeEnum(str, Enum):
     # Discount operations
     SET_DISCOUNT_AND_SEND_MESSAGE = "set_discount_and_send_message_task"
     REMOVE_DISCOUNT_AND_SEND_MESSAGE = "remove_discount_and_send_message_task"
+
+    # Funnel operation
+    FINISH_FUNNEL = "finish_funnel"

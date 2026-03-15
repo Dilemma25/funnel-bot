@@ -1,4 +1,5 @@
 from src.processing.tasks.messaging import SendMessageTask
+from src.processing.tasks.messaging import FinishFunnelTask
 from src.processing.tasks.messaging import SendDocumentTask
 from src.processing.tasks.messaging import SendVideoNoteTask
 from src.processing.tasks.messaging import SendVideoTask
@@ -18,6 +19,7 @@ class TaskFactory:
 
             TaskTypeEnum.REMOVE_DISCOUNT_AND_SEND_MESSAGE : RemoveDiscountAndSendMessageTask,
             TaskTypeEnum.SET_DISCOUNT_AND_SEND_MESSAGE : SetDiscountAndSendMessageTask,
+            TaskTypeEnum.FINISH_FUNNEL : FinishFunnelTask
         }
 
     def create_task_with_bot(self, task_type, bot: SafeBot, payload: dict):

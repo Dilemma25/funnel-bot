@@ -61,8 +61,8 @@ async def get_messages_to_delete_by_stage(
         if message_order == 0:
             continue
 
-        # Если current_order >= message_order → удаляем
-        if user_info['order'] >= message_order:
+        # Если current_order > message_order → удаляем
+        if user_info['order'] > message_order:
             messages_to_delete.append(message)
 
     return messages_to_delete

@@ -4,7 +4,7 @@ from aiogram.types import InlineKeyboardMarkup
 
 keyboard_b2 = InlineKeyboardMarkup(
     inline_keyboard=[
-        [InlineKeyboardButton(text="Понятно. Что с полным пакетом?", callback_data="day_b:b3:cost_of_delay")],
+        [InlineKeyboardButton(text="Понятно. Что с полным пакетом?", callback_data="day_b:b3:delay_cost")],
     ]
 )
 

@@ -11,5 +11,5 @@ async def create_user_state(user_id: int, offer_id: str, connection = None):
         await UserState.create(
             user_id=user_id,
             offer_id=offer_id,
-            connection=connection
+            using_db=connection
         )

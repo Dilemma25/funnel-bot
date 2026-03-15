@@ -10,8 +10,6 @@ class EventTypeEnum(str, Enum):
     USER_DROPPED = "user_dropped"  # Отвалился
     BLOCKED_BOT = "blocked_bot" # заблокировал бота
 
-
-
 class UserHistory(Model):
     """События для аналитики воронки"""
 

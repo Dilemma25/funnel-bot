@@ -17,7 +17,7 @@ from src.views.user_history import create_user_history
 from src.views.user_state.update_user_state import update_user_state
 from . import day_a_router
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from src.controllers.funnel_bot.day_a.timings import Timings
 from ..file_codes import FileCodes
@@ -70,6 +70,14 @@ async def handle_found_problems(callback: CallbackQuery, state: FSMContext):
             connection=conn
         )
 
+        await update_user_state(
+            user_id=user_id,
+            offer_code=OfferCodesEnum.SMART_WALLET,
+            last_activity_at=datetime.now(settings.timezone),
+            state=DayAStates.A_4_QUIZ_Q1,
+            connection=conn
+        )
+
     await callback.message.answer(
         text=messages.message_A4_q1,
         reply_markup=day_a_keyboards.keyboard_quiz_1,
@@ -79,13 +87,6 @@ async def handle_found_problems(callback: CallbackQuery, state: FSMContext):
 
     await state.update_data(
         quiz_sum=0,
-    )
-
-    await update_user_state(
-        user_id=user_id,
-        offer_code=OfferCodesEnum.SMART_WALLET,
-        last_activity_at=datetime.now(settings.timezone),
-        state=DayAStates.A_4_QUIZ_Q1,
     )
 
 
@@ -120,6 +121,14 @@ async def handle_not_found_problems(callback: CallbackQuery, state: FSMContext):
             "clicked_button": "a3: Пока не вижу явных проблем(A3.1)"
         }
 
+        await update_user_state(
+            user_id=user_id,
+            offer_code=OfferCodesEnum.SMART_WALLET,
+            last_activity_at=datetime.now(settings.timezone),
+            state=DayAStates.A_4_QUIZ_Q1,
+            connection=conn
+        )
+
         await create_user_history(
             user_id=user_id,
             event_type=EventTypeEnum.BUTTON_CLICKED,
@@ -137,14 +146,6 @@ async def handle_not_found_problems(callback: CallbackQuery, state: FSMContext):
 
     await state.update_data(
         quiz_sum=0,
-    )
-
-
-    await update_user_state(
-        user_id=user_id,
-        offer_code=OfferCodesEnum.SMART_WALLET,
-        last_activity_at=datetime.now(settings.timezone),
-        state=DayAStates.A_4_QUIZ_Q1,
     )
 
 @day_a_router.callback_query(
@@ -178,6 +179,7 @@ async def handle_quiz_1(callback: CallbackQuery, state: FSMContext):
         last_activity_at=datetime.now(settings.timezone),
         state=DayAStates.A_4_QUIZ_Q2
     )
+
 
 @day_a_router.callback_query(
     F.data.startswith("day_a:a4:q2_")
@@ -249,6 +251,8 @@ async def handle_quiz_4(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.delete()
 
+    user_id = callback.from_user.id
+
     answer_q4 = callback.data.split("_")[-1]
     price = QUIZ_ANSWERS["q4"][answer_q4]
 
@@ -265,11 +269,26 @@ async def handle_quiz_4(callback: CallbackQuery, state: FSMContext):
 
     async with in_transaction() as conn:
 
-        #Таска на кружок(A6)
-        user_id = callback.from_user.id
-        file_id = await get_media_by_file_code(FileCodes.VIDEO_NOTE_JADNOST, OfferCodesEnum.SMART_WALLET)
+        # await create_user_history(
+        #     user_id=user_id,
+        #     event_type=EventTypeEnum.STAGE_ENTERED,
+        #     user_stage=DayAStates.A_3_CHECKLIST_SENT,
+        #     connection=conn
+        # )
 
-        task_type = TaskTypeEnum.SEND_VIDEO_NOTE
+        await update_user_state(
+            user_id=user_id,
+            offer_code=OfferCodesEnum.SMART_WALLET,
+            last_activity_at=datetime.now(settings.timezone),
+            state=DayAStates.A_5_QUIZ_RESULT_SENT,
+            connection=conn,
+        )
+
+        now = datetime.now(timezone.utc)
+        # ===== ТАСКА 1: КРУЖОК 1 "КОНТРОЛЬ ≠ ЖАДНОСТЬ" (А6) =====
+        run_at = now + Timings.VIDEO_NOTE_DELAY
+
+        file_id = await get_media_by_file_code(FileCodes.VIDEO_NOTE_JADNOST, OfferCodesEnum.SMART_WALLET)
 
         payload = VideoNoteTaskPayload(
             user_id=user_id,
@@ -277,15 +296,20 @@ async def handle_quiz_4(callback: CallbackQuery, state: FSMContext):
 
             message_tag=SentMessageTagEnum.FUNNEL,
             message_stage=DayAStates.A_6_VIDEO_NOTE_JADNOST_SENT,
-            delete_at=datetime.now(settings.timezone) + SentMessageDeleteTimings.get_default(),
+            delete_at=run_at + SentMessageDeleteTimings.get_default(),
             delete_on_stage=DayAStates.FINAL
         )
 
-        time_run = datetime.now(settings.timezone) + Timings.VIDEO_NOTE_DELAY
+        await create_task(
+            user_id=user_id,
+            task_type=TaskTypeEnum.SEND_VIDEO_NOTE,
+            payload=payload.model_dump_json(),
+            run_at=run_at,
+            connection=conn
+        )
 
-        await create_task(user_id, task_type, payload.model_dump_json(), time_run, conn)
-
-        task_type = TaskTypeEnum.SEND_MESSAGE
+        # ===== ТАСКА 2: АНАЛОГИЯ + ФОРМУЛА (А7) =====
+        run_at = now + Timings.SYSTEM_MESSAGE_DELAY
 
         payload = MessageTaskPayload(
             user_id=user_id,
@@ -295,18 +319,15 @@ async def handle_quiz_4(callback: CallbackQuery, state: FSMContext):
             ),
             message_tag=SentMessageTagEnum.FUNNEL,
             message_stage=DayAStates.A_7_SYSTEM_MESSAGE_SENT,
-            delete_at=datetime.now(settings.timezone) + SentMessageDeleteTimings.get_default(),
+            delete_at=run_at + SentMessageDeleteTimings.get_default(),
             delete_on_stage=DayAStates.FINAL
         )
-        time_run = datetime.now(settings.timezone) + Timings.SYSTEM_MESSAGE_DELAY
 
-        await create_task(user_id, task_type, payload.model_dump_json(), time_run, conn)
-
-        await update_user_state(
+        await create_task(
             user_id=user_id,
-            offer_code=OfferCodesEnum.SMART_WALLET,
-            last_activity_at=datetime.now(settings.timezone),
-            state=DayAStates.A_5_QUIZ_RESULT_SENT,
-            connection=conn,
+            task_type=TaskTypeEnum.SEND_MESSAGE,
+            payload=payload.model_dump_json(),
+            run_at=run_at,
+            connection=conn
         )
 
