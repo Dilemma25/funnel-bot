@@ -37,6 +37,12 @@ async def upgrade(db: BaseDBAsyncClient) -> str:
                   (28, 'otzyv_den2_1.jpg', 'AgACAgIAAxkBAAIHbWmHoqx5mDBqFonY02_KWFWDc9KIAALTC2sbeDghSKgkD42Y93pZAQADAgADeQADOgQ', 1),
                   (29, 'otzyv_den2_2.jpg', 'AgACAgIAAxkBAAIHdWmHosDCcJ1VbiWP0n70XvA2T6KoAALUC2sbeDghSAS1L97x7b5LAQADAgADeQADOgQ', 1),
                   (30, 'otzyv_den2_3.jpg', 'AgACAgIAAxkBAAIHeWmHos_ReY2bFbDSXk7T6hb-QbBKAALVC2sbeDghSDh2jiQagFe1AQADAgADeQADOgQ', 1),
+                  (31, 'lesson_05_module_2_video_1', 'BAACAgIAAxkBAAICU2m3ujkJDB7WV_oWESKinZvAD4EAA5mcAAJoL7hJcdCQQDxnigQ6BA', 1),
+                  (32, 'lesson_05_module_2_video_2', 'BAACAgIAAxkBAAICV2m3unEGkIOJYOOR2WquSW6jupN5AAKfnAACaC-4SWYMfDW2Kga6OgQ', 1),
+                  (33, 'lesson_06_module_2_video_1', 'BAACAgIAAxkBAAICW2m3uxqqUxY0xLBIzNjyWcUQRfV6AALCigACaC_ASVHlWXgby8eeOgQ', 1),
+                  (34, 'lesson_06_module_2_video_2', 'BAACAgIAAxkBAAICX2m3uz-ADDQQ1Ws11qHBBpk7xqDYAAI0nwACaC-4SaEDYq0Na-5TOgQ', 1),
+                  (35, 'lesson_06_module_2_video_3', 'BAACAgIAAxkBAAICY2m3u2JIXSz2JxtXYbL0kXBHkuJKAALFigACaC_ASZT-wsjT_n5nOgQ', 1),
+                  (36, 'C_krujok_tsena_promedleniya.mp4', 'BAACAgIAAxkBAAIOuWm3vr_fvO7CuWZrifeF85k03pInAAKumAACGWvBSVjuwchFCZQAAToE', 1)
            ON CONFLICT (id) DO NOTHING;
 
            SELECT setval('media_id_seq', (SELECT MAX(id) FROM media));
@@ -45,9 +51,7 @@ async def upgrade(db: BaseDBAsyncClient) -> str:
 
 async def downgrade(db: BaseDBAsyncClient) -> str:
     return """
-           DELETE FROM media
-           WHERE id IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-                        17, 18, 19, 20, 21, 22, 23, 24, 25, 26);
+           DELETE FROM media WHERE id <= 36;
 
            SELECT setval('media_id_seq', (SELECT MAX(id) FROM media));
            """

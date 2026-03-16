@@ -12,7 +12,7 @@ async def upgrade(db: BaseDBAsyncClient) -> str:
     -- Обновляем bot_tag для smart_wallet_course_bot
     UPDATE media
     SET bot_tag = 'smart_wallet_course_bot'
-    WHERE id IN (14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27);
+    WHERE id IN (14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 31, 32, 33, 34, 35);
 
     -- Убеждаемся что все строки заполнены
     UPDATE media
