@@ -44,6 +44,9 @@ async def social_handler(callback: CallbackQuery, state: FSMContext):
             OfferCodesEnum.SMART_WALLET,
         )
 
+        if file_id is None:
+            continue
+
         reply_markup = keyboard_b2 if idx == len(FileCodesDayB.REVIEWS) else None
 
         message = await callback.message.answer_photo(

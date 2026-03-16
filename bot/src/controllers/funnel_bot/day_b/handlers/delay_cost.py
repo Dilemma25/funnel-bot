@@ -90,9 +90,10 @@ async def delay_cost_handler(callback: CallbackQuery, state: FSMContext):
             user_id=user_id,
             text=messages.message_B4,
 
-            keyboard=keyboard(
-                [button(text=f"📋 Посмотреть структуру курса", callback_data="day_b:b4:link_course_structure")]
-            ),
+            # keyboard=keyboard(
+            #     [button(text=f"📋 Посмотреть структуру курса", callback_data="day_b:b4:link_course_structure")]
+            # ),
+            keyboard=None,
             file_id=html_file,
             message_tag=SentMessageTagEnum.FUNNEL,
             message_stage=DayBStates.B_4_LAST_OFFER,

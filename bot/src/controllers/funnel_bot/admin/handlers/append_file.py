@@ -109,7 +109,7 @@ async def receive_file(message: Message, state: FSMContext):
         await message.answer("❌ Отправь видео, документ, фото или видео-кружок")
         return
 
-    await state.update_data(file_id=file_id)
+    await state.update_data(file_id=file_id, file_type=file_type)
 
     await message.answer(
         "✅ Файл получен!\n\n"

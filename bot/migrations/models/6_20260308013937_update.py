@@ -21,13 +21,6 @@ async def upgrade(db: BaseDBAsyncClient) -> str:
         
     COMMENT ON COLUMN "media"."bot_tag" IS 'FUNNEL: funnel_bot\nSMART_WALLET_COURSE: smart_wallet_course_bot';
 
-    -- Обновляем bot_tag для smart_wallet_course_bot
-    UPDATE media
-    SET bot_tag = 'smart_wallet_course_bot'
-    WHERE id IN (
-        14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27
-    );
-
     -- Добавляем колонку file_type
     ALTER TABLE "media"
         ADD COLUMN "file_type" VARCHAR(10);

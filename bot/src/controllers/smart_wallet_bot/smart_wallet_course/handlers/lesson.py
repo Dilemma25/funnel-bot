@@ -63,7 +63,6 @@ def build_next_lesson_keyboard(callback_data: str) -> InlineKeyboardMarkup:
         )
     ]])
 
-#TODO сделать чтоб выводилось несколько видео, если они есть, с подписями какая часть
 @smart_wallet_router.callback_query(F.data.startswith("lesson_"))
 async def handle_lesson(
         callback: CallbackQuery,
@@ -117,12 +116,20 @@ async def handle_lesson(
 
     for media_file in media_files:
         if media_file.file_type == MediaFileTypeEnum.VIDEO:
-            video_files.append(media_file.file_id)
+            video_files.append(media_file)
 
     for video_file in video_files:
 
+        caption = None
+
+        part = video_file.code.split("_")[-1]
+
+        if part.isdigit():
+            caption = f"Часть {part}"
+
         message_video = await callback.message.answer_video(
-            video=video_file,
+            video=video_file.file_id,
+            caption=caption
         )
 
         message_ids.append(message_video.message_id)

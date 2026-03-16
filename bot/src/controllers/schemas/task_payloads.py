@@ -64,6 +64,8 @@ class MessageTaskPayload(BaseTaskPayload):
             raise ValueError('Keyboard cannot be empty')
         return v
 
+class NewDayMessageTaskPayload(MessageTaskPayload):
+    offer_code: str = Field(..., description="Код оффера")
 
 class DocumentTaskPayload(BaseTaskPayload):
     """Payload для отправки документа"""

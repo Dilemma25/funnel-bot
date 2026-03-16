@@ -21,8 +21,8 @@ class TimingsDayB:
 
 
     # B5 таймер оффера — 6 часов
-    DISCOUNT_TIMER = timedelta(seconds=DEV_DELAY if IS_DEV else 6 * 60 * 60)
+    DISCOUNT_TIMER = timedelta(seconds=5 * 60 if IS_DEV else 6 * 60 * 60)
 
-    DISCOUNT_REMINDER = timedelta(seconds=DEV_DELAY if IS_DEV else 3 * 60 * 60)
+    DISCOUNT_REMINDER = timedelta(seconds=3 * 60 if IS_DEV else 3 * 60 * 60)
 
-    DISCOUNT_FINAL_REMINDER = timedelta(seconds=DEV_DELAY if IS_DEV else int(5.5 * 60 * 60))
+    DISCOUNT_FINAL_REMINDER = timedelta(seconds=4 * 60 if IS_DEV else int(5.5 * 60 * 60))

@@ -37,7 +37,7 @@ class DayATimings:
     A9_2_TO_A9_2_1 = timedelta(seconds=DEV_DELAY if IS_DEV else 3 * 60)
 
 
-    DAY_B_START = timedelta(seconds=10 * 60 if IS_DEV else 24 * 60 * 60)
+    DAY_B_START = timedelta(seconds=2 * 60 if IS_DEV else 24 * 60 * 60)
 
     DAY_C_START = timedelta(seconds=20 * 60 if IS_DEV else 48 * 60 * 60)
 

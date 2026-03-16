@@ -1,10 +1,17 @@
+from src.core.config import settings
+from src.core.logging_config import setup_logging
+logger = setup_logging(__name__, service=settings.service_name)
+
 from src.models import SentMessage
 from src.models import UserState
-from src.core.config import settings
+
 from src.controllers.user_states import get_state_order
 
 from typing import List
 from datetime import datetime
+from datetime import timezone
+
+
 
 async def get_messages_to_delete_by_stage(
         connection=None
@@ -32,13 +39,15 @@ async def get_messages_to_delete_by_stage(
                 'order': order
             }
 
+    logger.info(user_stage_info)
+
     if not user_stage_info:
         return []
 
     # 3. Получаем сообщения только для юзеров с валидным stage, которые по времени еще не истекли
     messages_query = SentMessage.filter(
         user_id__in=list(user_stage_info.keys()),
-        delete_at__gt=datetime.now(settings.timezone),
+        delete_at__gt=datetime.now(timezone.utc),
         is_deleted=False,
     )
 
@@ -64,5 +73,7 @@ async def get_messages_to_delete_by_stage(
         # Если current_order > message_order → удаляем
         if user_info['order'] > message_order:
             messages_to_delete.append(message)
+
+        logger.info(message_order)
 
     return messages_to_delete

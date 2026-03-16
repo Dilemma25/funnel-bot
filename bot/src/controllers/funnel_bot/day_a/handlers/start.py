@@ -31,7 +31,7 @@ from src.controllers.user_states import DayAStates
 from src.controllers.user_states import DayBStates
 from src.controllers.user_states import DayCStates
 
-from src.controllers.schemas.task_payloads import DocumentTaskPayload, FinishFunnelTaskPayload
+from src.controllers.schemas.task_payloads import DocumentTaskPayload, FinishFunnelTaskPayload, NewDayMessageTaskPayload
 from src.controllers.schemas.task_payloads import MessageTaskPayload
 
 from src.controllers.schemas.keyboard import button
@@ -131,14 +131,15 @@ async def start_day_a(message: Message, state: FSMContext):
         # ===== ТАСКА 1: Начало день B =====
         run_at = now + Timings.DAY_B_START
 
-        payload = MessageTaskPayload(
+        payload = NewDayMessageTaskPayload(
             user_id=user_id,
-            text=messages_day_b.message_B2,
+            text=messages_day_b.message_B1,
             keyboard=keyboard(
                 [
                     button(text="Какой полный пакет?", callback_data="day_b:b2:full_package"),
                 ],
             ),
+            offer_code=OfferCodesEnum.SMART_WALLET,
             message_stage=DayBStates.B_1_COLD_SHOWER,
             message_tag=SentMessageTagEnum.FUNNEL,
             delete_on_stage=DayCStates.C_1_PERSONAL_UPGRADE,
@@ -157,7 +158,7 @@ async def start_day_a(message: Message, state: FSMContext):
 
         run_at = now + Timings.DAY_C_START
 
-        payload = MessageTaskPayload(
+        payload = NewDayMessageTaskPayload(
             user_id=user_id,
             text=messages_day_c.message_c1,
             keyboard=keyboard(
@@ -165,6 +166,7 @@ async def start_day_a(message: Message, state: FSMContext):
                     button(text="Хочу апгрейд", callback_data="day_c:c2:offer"),
                 ],
             ),
+            offer_code=OfferCodesEnum.SMART_WALLET,
             message_stage=DayCStates.C_1_PERSONAL_UPGRADE,
             message_tag=SentMessageTagEnum.FUNNEL,
             delete_on_stage=DayCStates.FINAL,
