@@ -5,7 +5,7 @@ RUN_IN_TRANSACTION = True
 
 async def upgrade(db: BaseDBAsyncClient) -> str:
     return """
-           INSERT INTO media (id, code, file_id, offer_id) \
+           INSERT INTO media (id, code, file_id, offer_id)
            VALUES 
                   (1, 'тест-лид-магнит.mp4', 'BAACAgIAAxkBAAIHQWmHoPpWJqCaD88jMuzjB38SukuZAAJsgAACOg1hS6W3p8hD8EfHOgQ', 1),
                   (2, 'тест-Чек-лист_20_мест_утечки_денег.pdf', 'BQACAgIAAxkBAAIHVWmHojUXuAqybz2H1_e-n2GJecnbAAKBnQACO085SG9SOgtFOEsZOgQ', 1),
@@ -45,7 +45,7 @@ async def upgrade(db: BaseDBAsyncClient) -> str:
                   (36, 'C_krujok_tsena_promedleniya.mp4', 'BAACAgIAAxkBAAIOuWm3vr_fvO7CuWZrifeF85k03pInAAKumAACGWvBSVjuwchFCZQAAToE', 1)
            ON CONFLICT (id) DO NOTHING;
 
-           SELECT setval('media_id_seq', (SELECT MAX(id) FROM media));
+           SELECT setval('media_id_seq', COALESCE((SELECT MAX(id) FROM media),1));
            """
 
 
