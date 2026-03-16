@@ -32,8 +32,8 @@ async def upgrade(db: BaseDBAsyncClient) -> str:
                   (23, 'lesson_09_module_3_video', 'BAACAgIAAxkBAAN6aaycEq45ZOd8qOVni4ijSlrR_ugAAjyWAALbgWlJjar5S_5ieeA6BA', 1),
                   (24, 'lesson_10_module_4_video', 'BAACAgIAAxkBAAN-aayfyEmwprnz_aumGYNtN9V2rX8AAlSWAALbgWlJdJ57QOfSv3I6BA', 1),
                   (25, 'lesson_11_module_4_video', 'BAACAgIAAxkBAAOCaayiqcVK5j1n-t3PLSYh4Iui2roAAmuWAALbgWlJMZJMs5Xjklc6BA', 1),
-                  (26, 'lesson_12_module_4_video', 'BAACAgIAAxkBAAOGaaymLGJz-eXaWnIVR74F_qrKRK4AAoKWAALbgWlJTmcYy58X6_g6BA', 1)
-                  (27, 'course_final_checklist', 'BQACAgIAAxkBAAIBPGmuV5FYdM8hmuiQCwtZ6Em4SQPnAAL8kAAC6XpwSfa88MRJ0V4tOgQ', 1)
+                  (26, 'lesson_12_module_4_video', 'BAACAgIAAxkBAAOGaaymLGJz-eXaWnIVR74F_qrKRK4AAoKWAALbgWlJTmcYy58X6_g6BA', 1),
+                  (27, 'course_final_checklist', 'BQACAgIAAxkBAAIBPGmuV5FYdM8hmuiQCwtZ6Em4SQPnAAL8kAAC6XpwSfa88MRJ0V4tOgQ', 1),
                   (28, 'otzyv_den2_1.jpg', 'AgACAgIAAxkBAAIHbWmHoqx5mDBqFonY02_KWFWDc9KIAALTC2sbeDghSKgkD42Y93pZAQADAgADeQADOgQ', 1),
                   (29, 'otzyv_den2_2.jpg', 'AgACAgIAAxkBAAIHdWmHosDCcJ1VbiWP0n70XvA2T6KoAALUC2sbeDghSAS1L97x7b5LAQADAgADeQADOgQ', 1),
                   (30, 'otzyv_den2_3.jpg', 'AgACAgIAAxkBAAIHeWmHos_ReY2bFbDSXk7T6hb-QbBKAALVC2sbeDghSDh2jiQagFe1AQADAgADeQADOgQ', 1),
